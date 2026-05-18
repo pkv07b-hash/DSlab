@@ -57,10 +57,24 @@
   gap: 20px;
 }
 
-.stat-card {
+.stats-grid > div {
   display: flex;
-  align-items: center;
+}
+
+.stat-card {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: stretch;
+}
+
+.stat-card .card-content {
+  display: flex;
+  align-items: flex-start;
   gap: 20px;
+  width: 100%;
+  height: 100%;
 }
 
 .stat-icon {

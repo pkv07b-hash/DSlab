@@ -42,7 +42,7 @@ const ContactModal = ({ isOpen, onClose }) => {
               </div>
               <div className="contact-info">
                 <h4 style={{ fontSize: '20px' }}>Phone</h4>
-                <p><a href="tel:7004019285" style={{ color: 'var(--text-dim)', textDecoration: 'none' }}>7004019285</a></p>
+                <p><a href="tel:+91785700XXXX" style={{ color: 'var(--text-dim)', textDecoration: 'none' }}>+91 785700XXXX</a></p>
               </div>
             </div>
 
@@ -52,7 +52,7 @@ const ContactModal = ({ isOpen, onClose }) => {
               </div>
               <div className="contact-info">
                 <h4 style={{ fontSize: '20px' }}>Email</h4>
-                <p><a href="mailto:pkv07b@mail.com" style={{ color: 'var(--text-dim)', textDecoration: 'none' }}>pkv07b@mail.com</a></p>
+                <p><a href="mailto:supporthealhabit@gmail.com" style={{ color: 'var(--text-dim)', textDecoration: 'none' }}>supporthealhabit@gmail.com</a></p>
               </div>
             </div>
 
@@ -62,7 +62,7 @@ const ContactModal = ({ isOpen, onClose }) => {
               </div>
               <div className="contact-info">
                 <h4 style={{ fontSize: '20px' }}>X (Twitter)</h4>
-                <p><a href="https://x.com/PravinKumar8980" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--text-dim)', textDecoration: 'none' }}>@PravinKumar8980</a></p>
+                <p><a href="https://x.com/HealHabit" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--text-dim)', textDecoration: 'none' }}>#HealHabit</a></p>
               </div>
             </div>
 

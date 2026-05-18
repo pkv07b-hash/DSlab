@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import '../styles/Modals.css';
 
 const SettingsModal = ({ isOpen, onClose }) => {
-  const { user, updateUserInDb, addHistory } = useAuth();
+  const { user, updateUserInDb, updateStatsAndHistory, addHistory } = useAuth();
   
   const [name, setName] = useState('');
   const [age, setAge] = useState('');
@@ -28,8 +28,7 @@ const SettingsModal = ({ isOpen, onClose }) => {
     e.preventDefault();
     if (!user) return;
 
-    const updatedUser = {
-      ...user,
+    const updatedStats = {
       name,
       age: age ? parseInt(age) : '',
       gender,
@@ -37,10 +36,7 @@ const SettingsModal = ({ isOpen, onClose }) => {
       country
     };
 
-    updateUserInDb(updatedUser);
-    if (addHistory) {
-      addHistory('Updated profile information', 'Settings');
-    }
+    updateStatsAndHistory(updatedStats, 'Updated profile information', 'Settings');
     
     setSuccessMsg('Settings saved successfully!');
     setTimeout(() => {

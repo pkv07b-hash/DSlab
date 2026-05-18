@@ -55,7 +55,7 @@ export const AuthProvider = ({ children }) => {
         water: 0,
         screenTime: { total: 252, categories: { entertainment: 120, news: 60, coding: 72, focus: 0, custom: {} } },
         sleepDuration: 0,
-        focusScore: 74,
+        focusScore: 0,
         history: [],
         ...existingUser
       };
@@ -96,6 +96,21 @@ export const AuthProvider = ({ children }) => {
     updateUserInDb({ ...user, ...newStats });
   };
 
+  // updateStatsAndHistory merges stats AND history in a single write to avoid
+  // the stale-closure bug where two sequential updateUserInDb calls overwrite each other.
+  const updateStatsAndHistory = (newStats, action, category) => {
+    if (!user) return;
+    const newEntry = {
+      id: Date.now(),
+      action,
+      date: new Date().toISOString().split('T')[0],
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      category
+    };
+    const updatedHistory = [newEntry, ...(user.history || [])];
+    updateUserInDb({ ...user, ...newStats, history: updatedHistory });
+  };
+
   const addHistory = (action, category) => {
     if (!user) return;
     if (user.history && user.history.length > 0 && user.history[0].action === action) {
@@ -113,7 +128,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, signup, logout, updateUserInDb, updateWater, updateStats, addHistory }}>
+    <AuthContext.Provider value={{ user, login, signup, logout, updateUserInDb, updateWater, updateStats, updateStatsAndHistory, addHistory }}>
       {children}
     </AuthContext.Provider>
   );

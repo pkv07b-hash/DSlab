@@ -9,7 +9,7 @@ const STEP = 5; // minutes per click
 
 const ManualScreenTimeModal = ({ isOpen, onClose }) => {
   const { manualEntries, addManualEntry, updateManualEntry, removeManualEntry } = useUser();
-  const { user, updateStats, addHistory } = useAuth();
+  const { user, updateStatsAndHistory } = useAuth();
   const [website, setWebsite] = useState('');
   const [error, setError] = useState('');
 
@@ -40,16 +40,13 @@ const ManualScreenTimeModal = ({ isOpen, onClose }) => {
       ...currentScreenTimeObj,
       total: totalMinutes
     };
-    
-    let newFocusScore = user?.focusScore || 0;
-    if (totalMinutes > 120) {
-      newFocusScore = Math.max(0, newFocusScore - 5);
-    } else if (totalMinutes > 0) {
-      newFocusScore = Math.min(100, newFocusScore + 5);
-    }
-    
-    updateStats({ screenTime: newScreenTime, focusScore: newFocusScore });
-    addHistory(`Logged ${totalHours > 0 ? totalHours + 'h ' : ''}${totalMins}m screen time`, 'Screen Time');
+
+    // Use atomic update to avoid stale-closure overwrite between updateStats and addHistory
+    updateStatsAndHistory(
+      { screenTime: newScreenTime },
+      `Logged ${totalHours > 0 ? totalHours + 'h ' : ''}${totalMins}m screen time`,
+      'Screen Time'
+    );
     onClose();
   };
 

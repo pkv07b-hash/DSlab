@@ -124,7 +124,20 @@
 .focus-sidebar {
   display: flex;
   flex-direction: column;
-  gap: 30px;
+  height: 100%;
+}
+
+.tips-card {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.tips-card .card-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .sounds-grid {

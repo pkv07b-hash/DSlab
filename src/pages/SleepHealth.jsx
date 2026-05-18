@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { Moon, Droplets, Zap, Bed, Activity, Sparkles, Heart, Brain } from 'lucide-react';
+import { Moon, Droplets, Zap, Bed } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, ResponsiveContainer, Tooltip } from 'recharts';
 import GlassCard from '../components/GlassCard';
 import { useAuth } from '../context/AuthContext';
@@ -50,59 +50,21 @@ const SleepHealth = () => {
     return 'Optimal / Relaxed';
   }, [stressLevelPercent]);
 
+  // Compute a dynamic, authentic solid color based on current stress level 
+  const stressColor = useMemo(() => {
+    if (stressLevelPercent === 0) return 'rgba(255, 255, 255, 0.15)';
+    if (stressLevelPercent >= 80) return '#ef4444'; // Red for high stress
+    if (stressLevelPercent >= 60) return '#f97316'; // Orange for moderate stress
+    if (stressLevelPercent >= 40) return '#fbbf24'; // Yellow for mild stress
+    return '#10b981'; // Emerald Green for optimal/relaxed
+  }, [stressLevelPercent]);
+
   const stressAdvice = useMemo(() => {
     if (stressLevelPercent === 0) return 'Log your screen time and sleep to analyze stress indicators.';
     if (stressLevelPercent >= 80) return 'High cognitive strain detected. Shut down screens immediately and do deep breathing.';
     if (stressLevelPercent >= 60) return 'Stress is slightly elevated. Consider a 10-minute short walk and hydrate.';
     return 'Your heart rate variability is stable and stress levels are optimal. Great job!';
   }, [stressLevelPercent]);
-
-  // AI Wellness Report Generator (Simulating full data payload sent to AI for lifestyle and routine analysis)
-  const aiReport = useMemo(() => {
-    const isNewUser = waterIntake === 0 && sleepMinutes === 0 && screenTimeMins === 0;
-
-    if (isNewUser) {
-      return {
-        healthStatus: "Initializing Biometric Engine",
-        lifestyleSummary: "Ready to analyze",
-        routineScore: "0/100",
-        note: "Welcome to Aura AI! Our cognitive analysis engine is fully primed. Currently, your daily wellness dashboard is starting from zero. Please begin logging your screen time, sleep duration, and water intake on the home screen. Once logged, this AI hub will instantly run an advanced analysis of your lifestyle habits, hydration cells, and bedtime routines to deliver highly tailored optimization notes!"
-      };
-    }
-
-    // Hydration analysis
-    const waterGoalPercent = Math.min(100, Math.round((waterIntake / 2.5) * 100));
-    const hydrationFeedback = waterIntake >= 2.5 
-      ? "Hydration cells are perfectly filled! Your kidney and cognitive functions are operating at maximum capacity." 
-      : `Hydration is at ${waterIntake}L (${waterGoalPercent}% of the 2.5L goal). Increasing water intake will immediately improve concentration levels and reduce fatigue.`;
-
-    // Bedtime analysis
-    const sleepFeedback = sleepHours >= 8 
-      ? "Excellent sleep recovery! Your body is logging over 8 hours of premium deep rest, boosting physical muscle repair."
-      : sleepHours >= 6
-      ? `Rest period is moderate (${sleepHours.toFixed(1)}h). Aiming for 7-8 hours will dramatically improve your focus score and memory retention.`
-      : `Critical sleep deficit detected (${sleepHours.toFixed(1)}h). Your circadian rhythm is compromised. Establish a strict screen-free wind-down routine 30 minutes before bed.`;
-
-    // Digital routine analysis
-    const digitalFeedback = screenTimeMins > 240
-      ? `Excessive screen exposure observed (${screenTimeHours}h). Your central nervous system is highly stimulated. This screen routine impairs sleep quality.`
-      : `Balanced digital routine (${screenTimeHours}h). Your screen-to-sleep ratios are healthy, keeping stress hormones minimal.`;
-
-    const overallScore = Math.min(100, Math.round(
-      (Math.min(1, waterIntake / 2.5) * 40) + 
-      (Math.min(1, sleepHours / 8) * 40) + 
-      (screenTimeMins < 180 ? 20 : Math.max(0, 20 - (screenTimeMins - 180) / 10))
-    ));
-
-    const finalNote = `AI CLINICAL INSIGHT: Your overall digital-wellness score is ${overallScore}/100. ${hydrationFeedback} ${sleepFeedback} ${digitalFeedback} Recommendation: To improve your routine tomorrow, establish a strict sleep goal and take regular 250ml water intervals.`;
-
-    return {
-      healthStatus: waterIntake >= 2.0 && sleepHours >= 7 ? "Optimal Vitality" : "Rest & Rehydrate Required",
-      lifestyleSummary: screenTimeMins > 240 ? "Sedentary Screen-Dominant" : "Active Balanced Wellness",
-      routineScore: `${overallScore}/100`,
-      note: finalNote
-    };
-  }, [waterIntake, sleepMinutes, screenTimeMins, sleepHours, screenTimeHours]);
 
   return (
     <div className="sleep-page" style={{ display: 'flex', flexDirection: 'column', gap: '32px', paddingTop: '80px' }}>
@@ -199,10 +161,11 @@ const SleepHealth = () => {
                 className="progress-fill" 
                 style={{ 
                   width: `${stressLevelPercent}%`, 
-                  background: 'linear-gradient(90deg, #10b981, #f59e0b, #ef4444)',
+                  background: stressColor,
+                  boxShadow: `0 0 10px ${stressColor}40`,
                   height: '100%',
                   borderRadius: '5px',
-                  transition: 'width 0.4s ease-out'
+                  transition: 'width 0.4s ease-out, background-color 0.3s ease-out'
                 }} 
               />
             </div>
@@ -212,65 +175,6 @@ const SleepHealth = () => {
           </div>
         </GlassCard>
       </div>
-
-      {/* 🧠 Premium AI Wellness & Lifestyle Analysis Report Card */}
-      <GlassCard 
-        title="AI Wellness & Lifestyle Analysis" 
-        subtitle="Dynamic routine review synthesized from your live biometrics"
-        style={{
-          border: '1px solid rgba(99, 102, 241, 0.2)',
-          background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.05), rgba(30, 30, 40, 0.6))',
-          boxShadow: '0 10px 40px rgba(99, 102, 241, 0.05)'
-        }}
-      >
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', padding: '10px' }}>
-          
-          {/* Sub-Header Grid */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '16px', borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: '16px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: 'rgba(16, 185, 129, 0.1)', color: '#10b981', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <Heart size={20} />
-              </div>
-              <div>
-                <span style={{ display: 'block', fontSize: '11px', color: 'var(--text-muted)' }}>HEALTH VITALITY</span>
-                <span style={{ fontSize: '14px', fontWeight: 700, color: '#fff' }}>{aiReport.healthStatus}</span>
-              </div>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: 'rgba(99, 102, 241, 0.1)', color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <Activity size={20} />
-              </div>
-              <div>
-                <span style={{ display: 'block', fontSize: '11px', color: 'var(--text-muted)' }}>LIFESTYLE PATH</span>
-                <span style={{ fontSize: '14px', fontWeight: 700, color: '#fff' }}>{aiReport.lifestyleSummary}</span>
-              </div>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: 'rgba(245, 158, 11, 0.1)', color: '#fbbf24', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <Brain size={20} />
-              </div>
-              <div>
-                <span style={{ display: 'block', fontSize: '11px', color: 'var(--text-muted)' }}>DYNAMIC ROUTINE SCORE</span>
-                <span style={{ fontSize: '14px', fontWeight: 700, color: '#fbbf24' }}>{aiReport.routineScore}</span>
-              </div>
-            </div>
-          </div>
-
-          {/* AI Analysis Note */}
-          <div style={{ position: 'relative', display: 'flex', gap: '16px', alignItems: 'flex-start' }}>
-            <div style={{ marginTop: '4px', color: 'var(--primary)', animation: 'pulse 2s infinite' }}>
-              <Sparkles size={24} className="text-gradient" />
-            </div>
-            <div>
-              <h4 style={{ margin: '0 0 6px 0', fontSize: '15px', color: '#fff', fontWeight: 600 }}>AI Wellness Coach Report:</h4>
-              <p style={{ margin: 0, fontSize: '14px', color: 'rgba(255,255,255,0.7)', lineHeight: '1.7', whiteSpace: 'pre-line' }}>
-                {aiReport.note}
-              </p>
-            </div>
-          </div>
-          
-        </div>
-      </GlassCard>
 
     </div>
   );

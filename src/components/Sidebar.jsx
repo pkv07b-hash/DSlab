@@ -14,7 +14,8 @@ import {
   Crown,
   Phone,
   Star,
-  History
+  History,
+  X
 } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import { useUser } from '../context/UserContext';
@@ -25,7 +26,7 @@ import ReviewModal from './ReviewModal';
 import HistoryModal from './HistoryModal';
 import SettingsModal from './SettingsModal';
 
-const Sidebar = () => {
+const Sidebar = ({ isOpen, onClose }) => {
   const { theme, toggleTheme } = useTheme();
   const { isPremium } = useUser();
   const { user, logout } = useAuth();
@@ -69,14 +70,22 @@ const Sidebar = () => {
   ];
 
   return (
-    <aside className="sidebar">
-      <div className="sidebar-logo">
-        <div className={`logo-icon ${isPremium ? 'premium-logo' : ''}`}>
-          {isPremium ? <Crown size={24} /> : 'P'}
+    <aside className={`sidebar ${isOpen ? 'mobile-open' : ''}`}>
+      <div className="sidebar-logo" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div className={`logo-icon ${isPremium ? 'premium-logo' : ''}`}>
+            {isPremium ? <Crown size={24} /> : 'P'}
+          </div>
+          <span className={`logo-text ${isPremium ? 'text-premium' : 'text-gradient'}`}>
+            {isPremium ? 'HealHabit Elite' : 'HealHabit'}
+          </span>
         </div>
-        <span className={`logo-text ${isPremium ? 'text-premium' : 'text-gradient'}`}>
-          {isPremium ? 'HealHabit Elite' : 'HealHabit'}
-        </span>
+        <button 
+          className="mobile-close-btn" 
+          onClick={onClose}
+        >
+          <X size={24} />
+        </button>
       </div>
       
       <nav className="sidebar-nav">
@@ -84,6 +93,7 @@ const Sidebar = () => {
           <NavLink 
             key={item.path} 
             to={item.path}
+            onClick={onClose}
             className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
           >
             <item.icon size={20} />
@@ -91,25 +101,26 @@ const Sidebar = () => {
           </NavLink>
         ))}
         
-        <button className="nav-item" onClick={() => setIsHistoryOpen(true)} style={{ width: '100%', background: 'transparent', border: 'none', cursor: 'pointer', textAlign: 'left' }}>
+        <button className="nav-item" onClick={() => { setIsHistoryOpen(true); onClose(); }} style={{ width: '100%', background: 'transparent', border: 'none', cursor: 'pointer', textAlign: 'left' }}>
           <History size={20} />
           <span>History</span>
         </button>
         
         <NavLink 
           to="/challenges"
+          onClick={onClose}
           className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
         >
           <Trophy size={20} />
           <span>Challenges</span>
         </NavLink>
         
-        <button className="nav-item" onClick={() => setIsReviewOpen(true)} style={{ width: '100%', background: 'transparent', border: 'none', cursor: 'pointer', textAlign: 'left' }}>
+        <button className="nav-item" onClick={() => { setIsReviewOpen(true); onClose(); }} style={{ width: '100%', background: 'transparent', border: 'none', cursor: 'pointer', textAlign: 'left' }}>
           <Star size={20} />
           <span>Reviews</span>
         </button>
         
-        <button className="nav-item" onClick={() => setIsContactOpen(true)} style={{ width: '100%', background: 'transparent', border: 'none', cursor: 'pointer', textAlign: 'left' }}>
+        <button className="nav-item" onClick={() => { setIsContactOpen(true); onClose(); }} style={{ width: '100%', background: 'transparent', border: 'none', cursor: 'pointer', textAlign: 'left' }}>
           <MessageSquare size={20} />
           <span>Connect Us</span>
         </button>
@@ -117,11 +128,11 @@ const Sidebar = () => {
       </nav>
 
       <div className="sidebar-footer">
-        <button className="nav-item theme-toggle" onClick={toggleTheme} style={{ width: '100%', background: 'transparent', border: 'none', cursor: 'pointer', textAlign: 'left' }}>
+        <button className="nav-item theme-toggle" onClick={() => { toggleTheme(); onClose(); }} style={{ width: '100%', background: 'transparent', border: 'none', cursor: 'pointer', textAlign: 'left' }}>
           {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
           <span>{theme === 'dark' ? 'Light Mode' : 'Dark Mode'}</span>
         </button>
-        <button className="nav-item" onClick={() => setIsSettingsOpen(true)} style={{ width: '100%', background: 'transparent', border: 'none', cursor: 'pointer', textAlign: 'left' }}>
+        <button className="nav-item" onClick={() => { setIsSettingsOpen(true); onClose(); }} style={{ width: '100%', background: 'transparent', border: 'none', cursor: 'pointer', textAlign: 'left' }}>
           <Settings size={20} />
           <span>Settings</span>
         </button>

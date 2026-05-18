@@ -20,7 +20,7 @@ const MOCK_LEADERBOARD = [
 ];
 
 const Challenges = () => {
-  const { user, updateUserInDb, addHistory } = useAuth();
+  const { user, updateUserInDb, updateStatsAndHistory, addHistory } = useAuth();
   
   // Custom challenges loaded from user state or defaults
   const userChallenges = user?.challenges || [];
@@ -33,22 +33,23 @@ const Challenges = () => {
   const [target, setTarget] = useState(7);
   const [reward, setReward] = useState(100);
 
-  // Compute leaderboard ranks dynamically
+  // Compute leaderboard ranks dynamically - User only joins Leaderboard once points > 0
   const fullLeaderboard = [
     ...MOCK_LEADERBOARD,
-    { name: user?.name || 'You', points: userPoints, isSelf: true }
+    ...(userPoints > 0 ? [{ name: user?.name || 'You', points: userPoints, isSelf: true }] : [])
   ].sort((a, b) => b.points - a.points);
 
-  const userRank = fullLeaderboard.findIndex(row => row.isSelf) + 1;
-  const isTop10 = userRank <= 10;
+  const userRank = userPoints > 0 ? fullLeaderboard.findIndex(row => row.isSelf) + 1 : null;
+  const isTop10 = userRank !== null && userRank <= 10;
 
   // Auto-upgrade user to premium if they enter Top 10
   useEffect(() => {
     if (user && isTop10 && !user.isPremium) {
-      updateUserInDb({ ...user, isPremium: true });
-      if (addHistory) {
-        addHistory('Unlocked Free Premium Membership by entering Top 10 Leaderboard!', 'Rank Reward');
-      }
+      updateStatsAndHistory(
+        { isPremium: true },
+        'Unlocked Free Premium Membership by entering Top 10 Leaderboard!',
+        'Rank Reward'
+      );
     }
   }, [isTop10, user?.isPremium]);
 
@@ -66,20 +67,19 @@ const Challenges = () => {
       isDone: false,
     };
 
-    updateUserInDb({
-      ...user,
-      challenges: [...userChallenges, newChallenge]
-    });
+    const newChallenges = [...userChallenges, newChallenge];
+
+    updateStatsAndHistory(
+      { challenges: newChallenges },
+      `Created custom challenge: "${newChallenge.title}"`,
+      'Challenges'
+    );
 
     setTitle('');
     setDesc('');
     setTarget(7);
     setReward(100);
     setShowAddForm(false);
-    
-    if (addHistory) {
-      addHistory(`Created custom challenge: "${newChallenge.title}"`, 'Challenges');
-    }
   };
 
   const handleIncrement = (challengeId) => {
@@ -102,26 +102,33 @@ const Challenges = () => {
       return c.isDone && !original.isDone;
     });
 
-    let extraPoints = 0;
     if (newlyCompleted) {
-      extraPoints = newlyCompleted.reward;
-      if (addHistory) {
-        addHistory(`Completed challenge: "${newlyCompleted.title}"! Earned +${extraPoints} points!`, 'Challenges');
-      }
+      const extraPoints = newlyCompleted.reward;
+      updateStatsAndHistory(
+        {
+          points: userPoints + extraPoints,
+          challenges: updated
+        },
+        `Completed challenge: "${newlyCompleted.title}"! Earned +${extraPoints} points!`,
+        'Challenges'
+      );
+    } else {
+      updateUserInDb({
+        ...user,
+        challenges: updated
+      });
     }
-
-    updateUserInDb({
-      ...user,
-      points: userPoints + extraPoints,
-      challenges: updated
-    });
   };
 
   const handleDelete = (challengeId) => {
-    updateUserInDb({
-      ...user,
-      challenges: userChallenges.filter(c => c.id !== challengeId)
-    });
+    const targetChallenge = userChallenges.find(c => c.id === challengeId);
+    const newChallenges = userChallenges.filter(c => c.id !== challengeId);
+    
+    updateStatsAndHistory(
+      { challenges: newChallenges },
+      `Deleted challenge: "${targetChallenge?.title || 'Custom Challenge'}"`,
+      'Challenges'
+    );
   };
 
   return (
@@ -129,7 +136,40 @@ const Challenges = () => {
       
       {/* 🏆 Rank Achievement Header / Banner */}
       <AnimatePresence>
-        {isTop10 ? (
+        {userPoints === 0 ? (
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="glass-card"
+            style={{
+              padding: '24px',
+              border: '1px dashed rgba(239, 68, 68, 0.25)',
+              background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.05), rgba(99, 102, 241, 0.02))',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              borderRadius: '24px',
+              gap: '20px',
+              flexWrap: 'wrap'
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+              <div style={{ width: '56px', height: '56px', borderRadius: '50%', background: 'rgba(239, 68, 68, 0.12)', display: 'flex', alignItems: 'center', color: '#ef4444', justifyContent: 'center' }}>
+                <ShieldAlert size={26} className="animate-bounce" />
+              </div>
+              <div>
+                <h2 style={{ margin: 0, fontSize: '17px', color: '#fff', fontWeight: 700 }}>🔒 Global Leaderboard Locked</h2>
+                <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: 'rgba(255,255,255,0.6)' }}>
+                  You are not yet ranked on the leaderboard. Complete any challenge or goal below to earn points and claim your spot!
+                </p>
+              </div>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+              <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Status</span>
+              <span style={{ fontSize: '18px', fontWeight: 800, color: '#ef4444' }}>Not Qualified</span>
+            </div>
+          </motion.div>
+        ) : isTop10 ? (
           <motion.div 
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -438,6 +478,22 @@ const Challenges = () => {
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              {userPoints === 0 && (
+                <div 
+                  style={{
+                    padding: '16px',
+                    borderRadius: '12px',
+                    background: 'rgba(239, 68, 68, 0.03)',
+                    border: '1px dashed rgba(239, 68, 68, 0.15)',
+                    textAlign: 'center',
+                    marginBottom: '8px'
+                  }}
+                >
+                  <p style={{ margin: 0, fontSize: '13px', color: 'rgba(255,255,255,0.5)', lineHeight: '1.5' }}>
+                    You are not on the board yet. Complete challenges below to earn points and claim your spot!
+                  </p>
+                </div>
+              )}
               {fullLeaderboard.map((row, i) => {
                 const rank = i + 1;
                 const isPremiumRank = rank <= 10;

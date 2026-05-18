@@ -5,12 +5,13 @@ import PricingModal from './PricingModal';
 import PremiumPreviewModal from './PremiumPreviewModal';
 import { useUser } from '../context/UserContext';
 import { useAuth } from '../context/AuthContext';
-import { Crown, Sparkles, User as UserIcon } from 'lucide-react';
+import { Crown, Sparkles, User as UserIcon, Menu } from 'lucide-react';
 import '../styles/Layout.css';
 
 const Layout = ({ children }) => {
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [isPricingOpen, setIsPricingOpen] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const { isPremium } = useUser();
   const { user } = useAuth();
 
@@ -25,9 +26,16 @@ const Layout = ({ children }) => {
 
   return (
     <div className="layout">
-      <Sidebar />
+      <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
       <main className="main-content">
         <header className="content-header">
+          <button 
+            className="mobile-menu-btn" 
+            onClick={() => setIsSidebarOpen(true)}
+          >
+            <Menu size={24} />
+          </button>
+          
           <div className="user-profile">
             {isPremium ? (
               <div className="premium-badge glass-card">

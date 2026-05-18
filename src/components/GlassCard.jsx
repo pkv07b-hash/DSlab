@@ -1,8 +1,8 @@
 import React from 'react';
 
-const GlassCard = ({ children, className = '', title, subtitle }) => {
+const GlassCard = ({ children, className = '', title, subtitle, style }) => {
   return (
-    <div className={`glass-card ${className}`}>
+    <div className={`glass-card ${className}`} style={style}>
       {(title || subtitle) && (
         <div className="card-header">
           {title && <h3 className="card-title">{title}</h3>}

@@ -1,38 +1,22 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { 
-  ResponsiveContainer, 
-  AreaChart, 
-  Area, 
-  XAxis, 
-  YAxis, 
-  Tooltip, 
-  CartesianGrid 
-} from 'recharts';
 import { 
   Zap, 
   Droplets, 
   Moon,
   Clock, 
   Brain,
-  TrendingUp,
-  Award,
-  PlusCircle
+  PlusCircle,
+  Heart,
+  Activity,
+  Sparkles,
+  Star,
+  ShieldCheck
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useUser } from '../context/UserContext';
 import GlassCard from '../components/GlassCard';
 import ManualScreenTimeModal from '../components/ManualScreenTimeModal';
-
-const data = [
-  { name: '6am', usage: 10 },
-  { name: '9am', usage: 45 },
-  { name: '12pm', usage: 30 },
-  { name: '3pm', usage: 60 },
-  { name: '6pm', usage: 85 },
-  { name: '9pm', usage: 40 },
-  { name: '12am', usage: 5 },
-];
 
 const Dashboard = () => {
   const { user, updateWater, updateStats, addHistory } = useAuth();
@@ -68,8 +52,59 @@ const Dashboard = () => {
       isWater: true
     },
     { icon: Moon, label: 'Sleep Duration', value: formatSleepDuration(user?.sleepDuration || 0), change: '+30m', color: '#a855f7', isSleep: true },
-    { icon: Brain, label: 'Focus Score', value: `${user?.focusScore || 0}/100`, change: '+8%', color: '#10b981' },
+    { icon: Brain, label: 'Focus Score', value: '0/100', color: '#10b981' },
   ];
+
+  const waterIntake = user?.water || 0;
+  const sleepMinutes = user?.sleepDuration || 0;
+  const sleepHours = sleepMinutes / 60;
+  const screenTimeMins = (user && typeof user.screenTime === 'object' && user.screenTime.total) 
+    ? user.screenTime.total 
+    : 0;
+  const screenTimeHours = (screenTimeMins / 60).toFixed(1);
+
+  const aiReport = useMemo(() => {
+    const isNewUser = waterIntake === 0 && sleepMinutes === 0 && screenTimeMins === 0;
+
+    if (isNewUser) {
+      return {
+        healthStatus: "Initializing Biometric Engine",
+        lifestyleSummary: "Ready to analyze",
+        routineScore: "0/100",
+        note: "Welcome to Aura AI! Our cognitive analysis engine is fully primed. Currently, your daily wellness dashboard is starting from zero. Please begin logging your screen time, sleep duration, and water intake on the home screen. Once logged, this AI hub will instantly run an advanced analysis of your lifestyle habits, hydration cells, and bedtime routines to deliver highly tailored optimization notes!"
+      };
+    }
+
+    const waterGoalPercent = Math.min(100, Math.round((waterIntake / 2.5) * 100));
+    const hydrationFeedback = waterIntake >= 2.5 
+      ? "Hydration cells are perfectly filled! Your kidney and cognitive functions are operating at maximum capacity." 
+      : `Hydration is at ${waterIntake}L (${waterGoalPercent}% of the 2.5L goal). Increasing water intake will immediately improve concentration levels and reduce fatigue.`;
+
+    const sleepFeedback = sleepHours >= 8 
+      ? "Excellent sleep recovery! Your body is logging over 8 hours of premium deep rest, boosting physical muscle repair."
+      : sleepHours >= 6
+      ? `Rest period is moderate (${sleepHours.toFixed(1)}h). Aiming for 7-8 hours will dramatically improve your focus score and memory retention.`
+      : `Critical sleep deficit detected (${sleepHours.toFixed(1)}h). Your circadian rhythm is compromised. Establish a strict screen-free wind-down routine 30 minutes before bed.`;
+
+    const digitalFeedback = screenTimeMins > 240
+      ? `Excessive screen exposure observed (${screenTimeHours}h). Your central nervous system is highly stimulated. This screen routine impairs sleep quality.`
+      : `Balanced digital routine (${screenTimeHours}h). Your screen-to-sleep ratios are healthy, keeping stress hormones minimal.`;
+
+    const overallScore = Math.min(100, Math.round(
+      (Math.min(1, waterIntake / 2.5) * 40) + 
+      (Math.min(1, sleepHours / 8) * 40) + 
+      (screenTimeMins < 180 ? 20 : Math.max(0, 20 - (screenTimeMins - 180) / 10))
+    ));
+
+    const finalNote = `AI CLINICAL INSIGHT: Your overall digital-wellness score is ${overallScore}/100. ${hydrationFeedback} ${sleepFeedback} ${digitalFeedback} Recommendation: To improve your routine tomorrow, establish a strict sleep goal and take regular 250ml water intervals.`;
+
+    return {
+      healthStatus: waterIntake >= 2.0 && sleepHours >= 7 ? "Optimal Vitality" : "Rest & Rehydrate Required",
+      lifestyleSummary: screenTimeMins > 240 ? "Sedentary Screen-Dominant" : "Active Balanced Wellness",
+      routineScore: `${overallScore}/100`,
+      note: finalNote
+    };
+  }, [waterIntake, sleepMinutes, screenTimeMins, sleepHours, screenTimeHours]);
 
   return (
     <div className="dashboard-page">
@@ -146,91 +181,124 @@ const Dashboard = () => {
                     </button>
                   </div>
                 )}
-                {!stat.isWater && !stat.isScreenTime && !stat.isSleep && (
-                  <span className={`stat-change ${stat.change.startsWith('+') ? 'up' : 'down'}`}>
-                    {stat.change} vs yesterday
-                  </span>
-                )}
               </div>
             </GlassCard>
           </motion.div>
         ))}
       </div>
 
-      <div className="dashboard-main-grid">
-        <GlassCard className="chart-card" title="Usage Trends" subtitle="Digital activity over the last 24 hours">
-          <div className="chart-container" style={{ height: 300 }}>
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={data}>
-                <defs>
-                  <linearGradient id="colorUsage" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="#6366f1" stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.05)" />
-                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 12}} />
-                <YAxis hide />
-                <Tooltip 
-                  contentStyle={{ 
-                    background: 'rgba(15, 15, 20, 0.9)', 
-                    border: '1px solid rgba(255,255,255,0.1)',
-                    borderRadius: '12px',
-                    color: '#fff'
-                  }}
-                  itemStyle={{ color: '#6366f1' }}
-                />
-                <Area type="monotone" dataKey="usage" stroke="#6366f1" strokeWidth={3} fillOpacity={1} fill="url(#colorUsage)" />
-              </AreaChart>
-            </ResponsiveContainer>
+      {/* 🧠 AI Wellness & Lifestyle Analysis Report Card */}
+      <GlassCard 
+        title="AI Wellness & Lifestyle Analysis" 
+        subtitle="Dynamic routine review synthesized from your live biometrics"
+        style={{
+          marginTop: '24px',
+          border: '1px solid rgba(99, 102, 241, 0.2)',
+          background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.05), rgba(30, 30, 40, 0.6))',
+          boxShadow: '0 10px 40px rgba(99, 102, 241, 0.05)'
+        }}
+      >
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', padding: '10px' }}>
+          
+          {/* Sub-Header Grid */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '16px', borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: '16px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: 'rgba(16, 185, 129, 0.1)', color: '#10b981', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Heart size={20} />
+              </div>
+              <div>
+                <span style={{ display: 'block', fontSize: '11px', color: 'var(--text-muted)' }}>HEALTH VITALITY</span>
+                <span style={{ fontSize: '14px', fontWeight: 700, color: '#fff' }}>{aiReport.healthStatus}</span>
+              </div>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: 'rgba(99, 102, 241, 0.1)', color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Activity size={20} />
+              </div>
+              <div>
+                <span style={{ display: 'block', fontSize: '11px', color: 'var(--text-muted)' }}>LIFESTYLE PATH</span>
+                <span style={{ fontSize: '14px', fontWeight: 700, color: '#fff' }}>{aiReport.lifestyleSummary}</span>
+              </div>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: 'rgba(245, 158, 11, 0.1)', color: '#fbbf24', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Brain size={20} />
+              </div>
+              <div>
+                <span style={{ display: 'block', fontSize: '11px', color: 'var(--text-muted)' }}>DYNAMIC ROUTINE SCORE</span>
+                <span style={{ fontSize: '14px', fontWeight: 700, color: '#fbbf24' }}>{aiReport.routineScore}</span>
+              </div>
+            </div>
           </div>
-        </GlassCard>
 
-        <div className="side-grid">
-          {isPremium && (
-            <GlassCard className="ai-coach-card">
-              <div className="ai-header">
-                <div className="ai-avatar">
-                  <Zap size={20} />
-                </div>
-                <div>
-                  <h3>AI Wellness Coach</h3>
-                  <span className="online-tag">Online</span>
-                </div>
-              </div>
-              <p className="ai-suggestion">
-                "You've been on social media for 45 minutes straight. How about a 5-minute eye-strain exercise?"
+          {/* AI Analysis Note */}
+          <div style={{ position: 'relative', display: 'flex', gap: '16px', alignItems: 'flex-start' }}>
+            <div style={{ marginTop: '4px', color: 'var(--primary)', animation: 'pulse 2s infinite' }}>
+              <Sparkles size={24} className="text-gradient" />
+            </div>
+            <div>
+              <h4 style={{ margin: '0 0 6px 0', fontSize: '15px', color: '#fff', fontWeight: 600 }}>AI Wellness Coach Report:</h4>
+              <p style={{ margin: 0, fontSize: '14px', color: 'rgba(255,255,255,0.7)', lineHeight: '1.7', whiteSpace: 'pre-line' }}>
+                {aiReport.note}
               </p>
-              <button className="btn-primary w-full">Start Exercise</button>
-            </GlassCard>
-          )}
+            </div>
+          </div>
+          
+        </div>
+      </GlassCard>
 
-          <GlassCard className="goals-card" title="Daily Goals">
-            <div className="goal-item">
-              <div className="goal-progress-container">
-                <div className="goal-info">
-                  <span>Meditate</span>
-                  <span>10/10m</span>
-                </div>
-                <div className="progress-bar">
-                  <div className="progress-fill" style={{ width: '100%', background: 'var(--success)' }}></div>
-                </div>
-              </div>
-            </div>
-            <div className="goal-item">
-              <div className="goal-progress-container">
-                <div className="goal-info">
-                  <span>Deep Work</span>
-                  <span>2/4h</span>
-                </div>
-                <div className="progress-bar">
-                  <div className="progress-fill" style={{ width: '50%', background: 'var(--primary)' }}></div>
-                </div>
-              </div>
-            </div>
-          </GlassCard>
+      {/* Quotes section for Non-Premium Dashboard */}
+      <div className="premium-features-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '24px', marginTop: '24px' }}>
+        <div className="glass-card premium-feature" style={{ padding: '24px', borderRadius: '20px', border: '1px solid rgba(168, 85, 247, 0.15)', background: 'linear-gradient(135deg, rgba(168, 85, 247, 0.05), rgba(255, 255, 255, 0.01))' }}>
+          <Brain size={24} className="text-gradient" style={{ marginBottom: '12px' }} />
+          <h4 style={{ margin: '0 0 8px 0', fontSize: '16px', color: '#fff' }}>Small Beginnings</h4>
+          <p style={{ margin: 0, fontSize: '14px', color: 'var(--text-muted)', lineHeight: '1.5', fontStyle: 'italic' }}>
+            "All big things come from small beginnings. The seed of every habit is a single, tiny decision."
+          </p>
+          <p style={{ margin: '8px 0 0 0', fontSize: '12px', color: '#a855f7', fontWeight: 600, textAlign: 'right' }}>
+            — James Clear
+          </p>
+        </div>
+        <div className="glass-card premium-feature" style={{ padding: '24px', borderRadius: '20px', border: '1px solid rgba(34, 211, 238, 0.15)', background: 'linear-gradient(135deg, rgba(34, 211, 238, 0.05), rgba(255, 255, 255, 0.01))' }}>
+          <Star size={24} className="text-gradient" style={{ marginBottom: '12px' }} />
+          <h4 style={{ margin: '0 0 8px 0', fontSize: '16px', color: '#fff' }}>Power of Consistency</h4>
+          <p style={{ margin: 0, fontSize: '14px', color: 'var(--text-muted)', lineHeight: '1.5', fontStyle: 'italic' }}>
+            "It is not what we do once in a while that shapes our lives. It's what we do consistently."
+          </p>
+          <p style={{ margin: '8px 0 0 0', fontSize: '12px', color: '#22d3ee', fontWeight: 600, textAlign: 'right' }}>
+            — Tony Robbins
+          </p>
+        </div>
+        <div className="glass-card premium-feature" style={{ padding: '24px', borderRadius: '20px', border: '1px solid rgba(16, 185, 129, 0.15)', background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.05), rgba(255, 255, 255, 0.01))' }}>
+          <ShieldCheck size={24} className="text-gradient" style={{ marginBottom: '12px' }} />
+          <h4 style={{ margin: '0 0 8px 0', fontSize: '16px', color: '#fff' }}>Habit & Motivation</h4>
+          <p style={{ margin: 0, fontSize: '14px', color: 'var(--text-muted)', lineHeight: '1.5', fontStyle: 'italic' }}>
+            "Motivation is what gets you started. Habit is what keeps you going."
+          </p>
+          <p style={{ margin: '8px 0 0 0', fontSize: '12px', color: '#10b981', fontWeight: 600, textAlign: 'right' }}>
+            — Jim Ryun
+          </p>
         </div>
       </div>
+
+      {isPremium && (
+        <GlassCard className="ai-coach-card" style={{ marginTop: '24px' }}>
+          <div className="ai-header">
+            <div className="ai-avatar">
+              <Zap size={20} />
+            </div>
+            <div>
+              <h3>AI Wellness Coach</h3>
+              <span className="online-tag">Online</span>
+            </div>
+          </div>
+          <p className="ai-suggestion">
+            "You've been on social media for 45 minutes straight. How about a 5-minute eye-strain exercise?"
+          </p>
+          <button className="btn-primary w-full">Start Exercise</button>
+        </GlassCard>
+      )}
+
       <ManualScreenTimeModal
         isOpen={isScreenTimeModalOpen}
         onClose={() => setIsScreenTimeModalOpen(false)}

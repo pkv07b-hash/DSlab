@@ -7,10 +7,10 @@ const PremiumPreviewModal = ({ isOpen, onClose, onContinue }) => {
   if (!isOpen) return null;
 
   const features = [
-    { icon: Zap, title: 'Neural AI Processing', desc: 'Get faster, more detailed and personalized coaching answers.' },
-    { icon: Brain, title: 'Advanced Analytics', desc: 'Deep dive into your neural patterns and focus trends.' },
-    { icon: ShieldCheck, title: 'Exclusive Challenges', desc: 'Unlock Legendary missions with higher XP rewards.' },
-    { icon: Sparkles, title: 'Aura Elite Theme', desc: 'Beautiful Sage Green & Soft Beige theme for a premium feel.' }
+    { icon: Crown, title: 'Advanced Elite Dashboard', desc: 'Access the dedicated premium interface with deep tracking metrics and beautiful navy aesthetic.' },
+    { icon: Zap, title: 'Neural AI Wellness Coach', desc: 'Get highly detailed, faster, and deeply personalized wellness reports.' },
+    { icon: ShieldCheck, title: 'Global Leaderboard Entry', desc: 'Unlock and claim your rank in the global competitive health leaderboard.' },
+    { icon: Sparkles, title: 'Custom Goal & App Tracking', desc: 'Configure custom challenges and manually log screen-time for individual target apps.' }
   ];
 
   return (
@@ -32,8 +32,8 @@ const PremiumPreviewModal = ({ isOpen, onClose, onContinue }) => {
             <div className="contact-icon" style={{ margin: '0 auto 20px', background: 'linear-gradient(135deg, #00C2CB, #0B1F3A)', width: '80px', height: '80px', boxShadow: '0 0 30px rgba(0, 194, 203, 0.4)' }}>
               <Crown size={40} color="white" />
             </div>
-            <h2 className="text-premium" style={{ fontSize: '42px', marginBottom: '16px' }}>Unlock Aura Elite</h2>
-            <p className="text-muted" style={{ fontSize: '18px' }}>Experience the full power of AI-driven wellness tracking.</p>
+            <h2 className="text-premium" style={{ fontSize: '42px', marginBottom: '16px' }}>Unlock Your HealHabit</h2>
+            <p className="text-muted" style={{ fontSize: '18px' }}>Experiance your full potential to achive your Dream with Elite Version</p>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '32px', marginBottom: '48px', textAlign: 'left' }}>
