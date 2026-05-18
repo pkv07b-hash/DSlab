@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
-  LineChart, Line, Cell, LabelList
+  LineChart, Line, Cell, LabelList, PieChart, Pie
 } from 'recharts';
 import { Activity, Clock, FileText } from 'lucide-react';
 import GlassCard from '../components/GlassCard';
@@ -17,11 +17,11 @@ const usageData = [
   { name: 'Sun', screen: 3.1, productivity: 7 },
 ];
 
-const appUsage = [
-  { name: 'Deep Work (Focus)', value: 40, color: '#00C2CB' },
-  { name: 'Instagram', value: 25, color: '#E1306C' },
-  { name: 'WhatsApp', value: 20, color: '#25D366' },
-  { name: 'X', value: 15, color: '#ffffff' },
+// Default App Distribution (without WhatsApp by default)
+const baseAppUsage = [
+  { name: 'Deep Work (Focus)', value: 50, color: '#00C2CB' },
+  { name: 'Instagram', value: 30, color: '#E1306C' },
+  { name: 'X', value: 20, color: '#ffffff' },
 ];
 
 // Palette for manual entry bars
@@ -66,12 +66,39 @@ const Analytics = () => {
     localStorage.setItem('aura_analytics_notes', notes);
   }, [notes]);
 
+  // Check if user has manually entered WhatsApp
+  const hasWhatsApp = manualEntries.some(
+    e => e.website && e.website.toLowerCase().includes('whatsapp')
+  );
+
+  const appUsage = hasWhatsApp
+    ? [
+        { name: 'Deep Work (Focus)', value: 40, color: '#00C2CB' },
+        { name: 'Instagram', value: 25, color: '#E1306C' },
+        { name: 'WhatsApp', value: 20, color: '#25D366' },
+        { name: 'X', value: 15, color: '#ffffff' },
+      ]
+    : baseAppUsage;
+
   // Build bar chart data from manual entries
   const barData = manualEntries.map((entry, i) => ({
     name: entry.website,
     minutes: entry.minutes,
     fill: BAR_COLORS[i % BAR_COLORS.length],
   }));
+
+  // Build dynamic pie chart data based on manual entries, or fallback to default app usage if empty
+  const pieData = manualEntries.length > 0
+    ? manualEntries.map((entry, i) => ({
+        name: entry.website,
+        value: entry.minutes,
+        fill: BAR_COLORS[i % BAR_COLORS.length],
+      }))
+    : appUsage.map(app => ({
+        name: app.name,
+        value: app.value,
+        fill: app.color,
+      }));
 
   const totalManual = manualEntries.reduce((s, e) => s + e.minutes, 0);
   const totalH = Math.floor(totalManual / 60);
@@ -206,35 +233,45 @@ const Analytics = () => {
           </div>
         </GlassCard>
 
-        <GlassCard title="App Distribution" subtitle="Where your time goes">
+        <GlassCard title="App Distribution" subtitle="Percentage share of screen time">
           <div style={{ height: 350, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
             <div style={{ height: 220 }}>
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={appUsage} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
-                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 10 }} />
-                  <YAxis axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 10 }} unit="%" />
+                <PieChart>
                   <Tooltip 
                     contentStyle={{ background: 'rgba(15,15,20,0.95)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', color: '#fff' }}
+                    formatter={(value) => `${value}m`}
                   />
-                  <Bar dataKey="value" radius={[6, 6, 0, 0]}>
-                    {appUsage.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
+                  <Pie
+                    data={pieData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={60}
+                    outerRadius={80}
+                    paddingAngle={5}
+                    dataKey="value"
+                  >
+                    {pieData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.fill} />
                     ))}
-                  </Bar>
-                </BarChart>
+                  </Pie>
+                </PieChart>
               </ResponsiveContainer>
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '16px' }}>
-              {appUsage.map(app => (
-                <div key={app.name} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <div style={{ width: 8, height: 8, borderRadius: '2px', background: app.color }}></div>
-                    {app.name}
-                  </span>
-                  <span style={{ fontWeight: 600 }}>{app.value}%</span>
-                </div>
-              ))}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '16px', maxHeight: '100px', overflowY: 'auto' }}>
+              {pieData.map((app, i) => {
+                const totalMinutes = pieData.reduce((s, e) => s + e.value, 0);
+                const percent = totalMinutes > 0 ? Math.round((app.value / totalMinutes) * 100) : 0;
+                return (
+                  <div key={i} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <div style={{ width: 8, height: 8, borderRadius: '2px', background: app.fill }}></div>
+                      {app.name}
+                    </span>
+                    <span style={{ fontWeight: 600 }}>{percent}% ({app.value}m)</span>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </GlassCard>

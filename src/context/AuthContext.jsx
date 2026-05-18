@@ -6,6 +6,29 @@ if (!globalThis.__AuthContext) {
 const AuthContext = globalThis.__AuthContext;
 
 export const AuthProvider = ({ children }) => {
+  const [apiUrl, setApiUrl] = useState('http://localhost:5001'); // default to 5001
+
+  // Dynamically detect active backend port (either 5000 or 5001)
+  useEffect(() => {
+    const detectBackend = async () => {
+      try {
+        const res = await fetch('http://localhost:5000/api/status');
+        if (res.ok) {
+          setApiUrl('http://localhost:5000');
+          return;
+        }
+      } catch (e) {}
+      try {
+        const res = await fetch('http://localhost:5001/api/status');
+        if (res.ok) {
+          setApiUrl('http://localhost:5001');
+          return;
+        }
+      } catch (e) {}
+    };
+    detectBackend();
+  }, []);
+
   const [user, setUser] = useState(() => {
     const savedUser = localStorage.getItem('aura_current_user');
     return savedUser ? JSON.parse(savedUser) : null;
@@ -28,9 +51,7 @@ export const AuthProvider = ({ children }) => {
     }
   }, [user]);
 
-  const signup = (email, password, name) => {
-    if (db[email]) return { success: false, message: 'User already exists' };
-    
+  const signup = async (email, password, name) => {
     const newUser = { 
       email, 
       password, 
@@ -43,35 +64,88 @@ export const AuthProvider = ({ children }) => {
       focusScore: 0,
       history: []
     };
-    setDb(prev => ({ ...prev, [email]: newUser }));
-    return { success: true };
-  };
 
-  const login = (email, password) => {
-    const existingUser = db[email];
-    if (existingUser && existingUser.password === password) {
-      // Ensure all stats exist for older accounts
-      const userWithStats = {
-        water: 0,
-        screenTime: { total: 252, categories: { entertainment: 120, news: 60, coding: 72, focus: 0, custom: {} } },
-        sleepDuration: 0,
-        focusScore: 0,
-        history: [],
-        ...existingUser
-      };
-      setUser(userWithStats);
+    try {
+      const response = await fetch(`${apiUrl}/api/users/signup`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newUser)
+      });
+      const data = await response.json();
+      
+      if (data.success) {
+        setDb(prev => ({ ...prev, [email]: newUser }));
+        return { success: true };
+      } else {
+        return { success: false, message: data.message || 'Signup failed' };
+      }
+    } catch (err) {
+      console.warn('Backend offline, using localStorage fallback');
+      if (db[email]) return { success: false, message: 'User already exists' };
+      setDb(prev => ({ ...prev, [email]: newUser }));
       return { success: true };
     }
-    return { success: false, message: 'Invalid credentials' };
+  };
+
+  const login = async (email, password) => {
+    try {
+      const response = await fetch(`${apiUrl}/api/users/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+      const data = await response.json();
+      
+      if (data.success) {
+        const loggedInUser = {
+          water: 0,
+          screenTime: { total: 252, categories: { entertainment: 120, news: 60, coding: 72, focus: 0, custom: {} } },
+          sleepDuration: 0,
+          focusScore: 0,
+          history: [],
+          ...data.user
+        };
+        setUser(loggedInUser);
+        return { success: true };
+      } else {
+        return { success: false, message: data.message || 'Invalid credentials' };
+      }
+    } catch (err) {
+      console.warn('Backend offline, using localStorage login fallback');
+      const existingUser = db[email];
+      if (existingUser && existingUser.password === password) {
+        const userWithStats = {
+          water: 0,
+          screenTime: { total: 252, categories: { entertainment: 120, news: 60, coding: 72, focus: 0, custom: {} } },
+          sleepDuration: 0,
+          focusScore: 0,
+          history: [],
+          ...existingUser
+        };
+        setUser(userWithStats);
+        return { success: true };
+      }
+      return { success: false, message: 'Invalid credentials' };
+    }
   };
 
   const logout = () => {
     setUser(null);
   };
 
-  const updateUserInDb = (updatedUser) => {
+  const updateUserInDb = async (updatedUser) => {
     setDb(prev => ({ ...prev, [updatedUser.email]: updatedUser }));
     setUser(updatedUser);
+
+    try {
+      await fetch(`${apiUrl}/api/users/update`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updatedUser)
+      });
+    } catch (err) {
+      console.warn('Backend update failed, sync cached in localStorage');
+    }
   };
 
   const updateWater = (amount) => {

@@ -14,16 +14,16 @@ const Login = () => {
   const { login, signup } = useAuth();
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
 
     if (isLogin) {
-      const res = login(email, password);
+      const res = await login(email, password);
       if (res.success) navigate('/');
       else setError(res.message);
     } else {
-      const res = signup(email, password, name);
+      const res = await signup(email, password, name);
       if (res.success) {
         setIsLogin(true);
         setError('Account created! Please login.');
