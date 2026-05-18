@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { 
   ResponsiveContainer, 
@@ -12,16 +12,17 @@ import {
 import { 
   Zap, 
   Droplets, 
-  Moon, 
+  Moon,
   Clock, 
   Brain,
   TrendingUp,
-  Award
+  Award,
+  PlusCircle
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useUser } from '../context/UserContext';
 import GlassCard from '../components/GlassCard';
-import CommunityButtons from '../components/CommunityButtons';
+import ManualScreenTimeModal from '../components/ManualScreenTimeModal';
 
 const data = [
   { name: '6am', usage: 10 },
@@ -34,10 +35,30 @@ const data = [
 ];
 
 const Dashboard = () => {
-  const { user, updateWater } = useAuth();
+  const { user, updateWater, updateStats, addHistory } = useAuth();
   const { isPremium } = useUser();
+  const [isScreenTimeModalOpen, setIsScreenTimeModalOpen] = useState(false);
+  
+  const getScreenTimeDisplay = () => {
+    if (typeof user?.screenTime === 'string') {
+      return user.screenTime;
+    }
+    if (user?.screenTime?.total) {
+      const hours = Math.floor(user.screenTime.total / 60);
+      const minutes = user.screenTime.total % 60;
+      return `${hours}h ${minutes}m`;
+    }
+    return '0h 0m';
+  };
+  
+  const formatSleepDuration = (mins) => {
+    const hours = Math.floor(mins / 60);
+    const minutes = mins % 60;
+    return `${hours}h ${minutes}m`;
+  };
+  
   const stats = [
-    { icon: Clock, label: 'Screen Time', value: user?.screenTime || '0h 0m', change: '-12%', color: '#6366f1' },
+    { icon: Clock, label: 'Screen Time', value: getScreenTimeDisplay(), change: '-12%', color: '#6366f1', isScreenTime: true },
     { 
       icon: Droplets, 
       label: 'Water Intake', 
@@ -46,7 +67,7 @@ const Dashboard = () => {
       color: '#22d3ee',
       isWater: true
     },
-    { icon: Moon, label: 'Sleep Quality', value: `${user?.sleepQuality || 0}%`, change: '+2%', color: '#a855f7' },
+    { icon: Moon, label: 'Sleep Duration', value: formatSleepDuration(user?.sleepDuration || 0), change: '+30m', color: '#a855f7', isSleep: true },
     { icon: Brain, label: 'Focus Score', value: `${user?.focusScore || 0}/100`, change: '+8%', color: '#10b981' },
   ];
 
@@ -93,7 +114,39 @@ const Dashboard = () => {
                     </button>
                   </div>
                 )}
-                {!stat.isWater && (
+                {stat.isScreenTime && (
+                  <div style={{ marginTop: '8px' }}>
+                    <button 
+                      onClick={() => setIsScreenTimeModalOpen(true)}
+                      style={{ background: 'rgba(99, 102, 241, 0.1)', border: '1px solid rgba(99, 102, 241, 0.2)', color: '#6366f1', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '6px' }}
+                    >
+                      <PlusCircle size={14} /> Add screen time
+                    </button>
+                  </div>
+                )}
+                {stat.isSleep && (
+                  <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
+                    <button 
+                      onClick={() => {
+                        updateStats({ sleepDuration: (user?.sleepDuration || 0) + 30 });
+                        addHistory('Logged +30m sleep', 'Health');
+                      }}
+                      style={{ background: 'rgba(168, 85, 247, 0.1)', border: '1px solid rgba(168, 85, 247, 0.2)', color: '#a855f7', padding: '4px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px' }}
+                    >
+                      + 30m
+                    </button>
+                    <button 
+                      onClick={() => {
+                        updateStats({ sleepDuration: Math.max(0, (user?.sleepDuration || 0) - 30) });
+                        addHistory('Removed 30m sleep', 'Health');
+                      }}
+                      style={{ background: 'rgba(168, 85, 247, 0.1)', border: '1px solid rgba(168, 85, 247, 0.2)', color: '#a855f7', padding: '4px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px' }}
+                    >
+                      - 30m
+                    </button>
+                  </div>
+                )}
+                {!stat.isWater && !stat.isScreenTime && !stat.isSleep && (
                   <span className={`stat-change ${stat.change.startsWith('+') ? 'up' : 'down'}`}>
                     {stat.change} vs yesterday
                   </span>
@@ -176,12 +229,12 @@ const Dashboard = () => {
               </div>
             </div>
           </GlassCard>
-
-          <div style={{ marginTop: '24px' }}>
-            <CommunityButtons />
-          </div>
         </div>
       </div>
+      <ManualScreenTimeModal
+        isOpen={isScreenTimeModalOpen}
+        onClose={() => setIsScreenTimeModalOpen(false)}
+      />
     </div>
   );
 };

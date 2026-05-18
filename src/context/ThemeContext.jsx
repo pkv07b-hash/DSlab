@@ -1,10 +1,13 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useAuth } from './AuthContext';
 
-const ThemeContext = createContext();
+if (!globalThis.__ThemeContext) {
+  globalThis.__ThemeContext = createContext();
+}
+const ThemeContext = globalThis.__ThemeContext;
 
 export const ThemeProvider = ({ children }) => {
-  const { user, updateUserInDb } = useAuth();
+  const { user, updateUserInDb, addHistory } = useAuth();
   
   const [theme, setTheme] = useState(() => {
     const savedTheme = localStorage.getItem('aura-theme');
@@ -27,6 +30,9 @@ export const ThemeProvider = ({ children }) => {
     setTheme(newTheme);
     if (user) {
       updateUserInDb({ ...user, theme: newTheme });
+      if (addHistory) {
+        addHistory(`Switched to ${newTheme === 'dark' ? 'Dark Mode' : 'Light Mode'}`, 'Settings');
+      }
     }
   };
 

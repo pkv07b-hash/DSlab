@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Outlet, Navigate } from 'react-
 import { ThemeProvider } from './context/ThemeContext';
 import { UserProvider, useUser } from './context/UserContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import ErrorBoundary from './components/ErrorBoundary';
 import Layout from './components/Layout';
 import Dashboard from './pages/Dashboard';
 import HabitTracker from './pages/HabitTracker';
@@ -17,27 +18,35 @@ import './styles/Premium.css';
 
 function App() {
   return (
-    <AuthProvider>
-      <ThemeProvider>
-        <UserProvider>
-          <Router>
-            <Routes>
-              <Route path="/login" element={<Login />} />
-              {/* Wrap routes that need the Layout and protection */}
-              <Route element={<ProtectedRoute><LayoutWrapper /></ProtectedRoute>}>
-              <Route path="/" element={<HomeSelector />} />
-              <Route path="/habits" element={<HabitTracker />} />
-              <Route path="/analytics" element={<Analytics />} />
-              <Route path="/focus" element={<FocusMode />} />
-              <Route path="/sleep" element={<SleepHealth />} />
-              <Route path="/challenges" element={<Challenges />} />
-              <Route path="/premium" element={<PremiumDashboard />} />
-            </Route>
-          </Routes>
-        </Router>
-      </UserProvider>
-    </ThemeProvider>
-    </AuthProvider>
+    <ErrorBoundary>
+      <AuthProvider>
+        <ThemeProvider>
+          <UserProvider>
+            <AppContent />
+          </UserProvider>
+        </ThemeProvider>
+      </AuthProvider>
+    </ErrorBoundary>
+  );
+}
+
+function AppContent() {
+  return (
+    <Router>
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        {/* Wrap routes that need the Layout and protection */}
+        <Route element={<ProtectedRoute><LayoutWrapper /></ProtectedRoute>}>
+          <Route path="/" element={<HomeSelector />} />
+          <Route path="/habits" element={<HabitTracker />} />
+          <Route path="/analytics" element={<Analytics />} />
+          <Route path="/focus" element={<FocusMode />} />
+          <Route path="/sleep" element={<SleepHealth />} />
+          <Route path="/challenges" element={<Challenges />} />
+          <Route path="/premium" element={<PremiumDashboard />} />
+        </Route>
+      </Routes>
+    </Router>
   );
 }
 

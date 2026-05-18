@@ -3,14 +3,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, History as HistoryIcon, Calendar, CheckCircle2, Clock } from 'lucide-react';
 import '../styles/Modals.css';
 
+import { useAuth } from '../context/AuthContext';
+
 const HistoryModal = ({ isOpen, onClose }) => {
-  const history = [
-    { id: 1, action: 'Completed Digital Detox Challenge', date: '2026-05-14', time: '18:30', category: 'Challenge' },
-    { id: 2, action: 'Achieved 8h Sleep Goal', date: '2026-05-14', time: '07:15', category: 'Health' },
-    { id: 3, action: 'Finished 2h Deep Work Session', date: '2026-05-13', time: '14:45', category: 'Focus' },
-    { id: 4, action: 'Completed Morning Bird Mission', date: '2026-05-12', time: '06:30', category: 'Challenge' },
-    { id: 5, action: 'Logged 2.5L Water Intake', date: '2026-05-12', time: '20:00', category: 'Habit' },
-  ];
+  const { user } = useAuth();
+  const history = user?.history || [];
 
   if (!isOpen) return null;
 
@@ -82,7 +79,9 @@ const HistoryModal = ({ isOpen, onClose }) => {
           </div>
 
           <div style={{ textAlign: 'center', marginTop: '20px' }}>
-            <p style={{ color: 'var(--text-muted)', fontSize: '14px' }}>Showing your last 5 activities</p>
+            <p style={{ color: 'var(--text-muted)', fontSize: '14px' }}>
+              {history.length > 0 ? `Showing your last ${history.length} activities` : 'No history yet'}
+            </p>
           </div>
         </motion.div>
       </div>

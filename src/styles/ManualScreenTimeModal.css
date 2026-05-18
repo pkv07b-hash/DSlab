@@ -1,0 +1,272 @@
+/* ── Overlay ── */
+.mst-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 4000;
+  padding: 24px;
+}
+
+/* ── Modal box ── */
+.mst-modal {
+  width: 100%;
+  max-width: 520px;
+  background: var(--bg-dark, #0f0f14);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 24px;
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6);
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+/* ── Header ── */
+.mst-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.mst-title-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.mst-icon {
+  color: var(--primary, #6366f1);
+}
+
+.mst-title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-main, #fff);
+}
+
+.mst-close {
+  background: none;
+  border: none;
+  color: var(--text-muted, #64748b);
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s, color 0.2s;
+}
+
+.mst-close:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-main, #fff);
+}
+
+/* ── Add row ── */
+.mst-add-row {
+  display: flex;
+  gap: 10px;
+}
+
+.mst-input {
+  flex: 1;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--text-main, #fff);
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.mst-input::placeholder {
+  color: var(--text-muted, #64748b);
+}
+
+.mst-input:focus {
+  border-color: var(--primary, #6366f1);
+}
+
+.mst-add-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 18px;
+  border-radius: 12px;
+  background: var(--primary, #6366f1);
+  color: #fff;
+  border: none;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: opacity 0.2s;
+}
+
+.mst-add-btn:hover {
+  opacity: 0.85;
+}
+
+.mst-error {
+  margin: -10px 0 0;
+  font-size: 13px;
+  color: #ef4444;
+}
+
+/* ── Entries list ── */
+.mst-entries {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.mst-empty {
+  text-align: center;
+  color: var(--text-muted, #64748b);
+  font-size: 14px;
+  padding: 20px 0;
+}
+
+.mst-entry {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 14px;
+  transition: background 0.2s;
+}
+
+.mst-entry:hover {
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.mst-entry-name {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-main, #fff);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ── Stepper ── */
+.mst-stepper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+  padding: 4px 8px;
+}
+
+.mst-step-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s, opacity 0.2s;
+}
+
+.mst-step-btn.minus {
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+}
+
+.mst-step-btn.minus:hover:not(:disabled) {
+  background: rgba(239, 68, 68, 0.3);
+}
+
+.mst-step-btn.plus {
+  background: rgba(99, 102, 241, 0.15);
+  color: var(--primary, #6366f1);
+}
+
+.mst-step-btn.plus:hover {
+  background: rgba(99, 102, 241, 0.3);
+}
+
+.mst-step-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.mst-minutes {
+  min-width: 52px;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-main, #fff);
+}
+
+/* ── Remove button ── */
+.mst-remove-btn {
+  background: none;
+  border: none;
+  color: var(--text-muted, #64748b);
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s, color 0.2s;
+}
+
+.mst-remove-btn:hover {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+}
+
+/* ── Footer ── */
+.mst-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 16px;
+  background: rgba(99, 102, 241, 0.08);
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  border-radius: 14px;
+}
+
+.mst-total-label {
+  font-size: 14px;
+  color: var(--text-muted, #64748b);
+  font-weight: 500;
+}
+
+.mst-total-value {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--primary, #6366f1);
+}
+
+/* ── Responsive ── */
+@media (max-width: 540px) {
+  .mst-modal {
+    padding: 20px;
+    border-radius: 18px;
+  }
+
+  .mst-add-row {
+    flex-direction: column;
+  }
+
+  .mst-add-btn {
+    justify-content: center;
+  }
+}

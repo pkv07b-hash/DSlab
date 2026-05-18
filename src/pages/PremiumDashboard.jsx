@@ -21,12 +21,13 @@ import {
   Clock,
   Droplets,
   Moon,
-  Award
+  Award,
+  PlusCircle
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import GlassCard from '../components/GlassCard';
-import CommunityButtons from '../components/CommunityButtons';
 import HistoryModal from '../components/HistoryModal';
+import ManualScreenTimeModal from '../components/ManualScreenTimeModal';
 import { History } from 'lucide-react';
 import '../styles/Dashboard.css';
 
@@ -41,11 +42,30 @@ const data = [
 ];
 
 const PremiumDashboard = () => {
-  const { user, updateWater } = useAuth();
+  const { user, updateWater, updateStats, addHistory } = useAuth();
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+  const [isScreenTimeModalOpen, setIsScreenTimeModalOpen] = useState(false);
+  
+  const getScreenTimeDisplay = () => {
+    if (typeof user?.screenTime === 'string') {
+      return user.screenTime;
+    }
+    if (user?.screenTime?.total) {
+      const hours = Math.floor(user.screenTime.total / 60);
+      const minutes = user.screenTime.total % 60;
+      return `${hours}h ${minutes}m`;
+    }
+    return '0h 0m';
+  };
+  
+  const formatSleepDuration = (mins) => {
+    const hours = Math.floor(mins / 60);
+    const minutes = mins % 60;
+    return `${hours}h ${minutes}m`;
+  };
   
   const stats = [
-    { icon: Clock, label: 'Screen Time', value: user?.screenTime || '0h 0m', change: '-22%', color: 'var(--primary)' },
+    { icon: Clock, label: 'Screen Time', value: getScreenTimeDisplay(), change: '-22%', color: 'var(--primary)', isScreenTime: true },
     { 
       icon: Droplets, 
       label: 'Water Intake', 
@@ -54,7 +74,7 @@ const PremiumDashboard = () => {
       color: '#22d3ee',
       isWater: true
     },
-    { icon: Moon, label: 'Sleep Quality', value: `${user?.sleepQuality || 0}%`, change: '+12%', color: '#a855f7' },
+    { icon: Moon, label: 'Sleep Duration', value: formatSleepDuration(user?.sleepDuration || 0), change: '+30m', color: '#a855f7', isSleep: true },
     { icon: Brain, label: 'Focus Score', value: `${user?.focusScore || 0}/100`, change: '+15%', color: 'var(--secondary)' },
   ];
 
@@ -102,7 +122,39 @@ const PremiumDashboard = () => {
                     </button>
                   </div>
                 )}
-                {!stat.isWater && (
+                {stat.isScreenTime && (
+                  <div style={{ marginTop: '8px' }}>
+                    <button 
+                      onClick={() => setIsScreenTimeModalOpen(true)}
+                      style={{ background: 'rgba(99, 102, 241, 0.1)', border: '1px solid rgba(99, 102, 241, 0.2)', color: 'var(--primary)', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '6px' }}
+                    >
+                      <PlusCircle size={14} /> Add screen time
+                    </button>
+                  </div>
+                )}
+                {stat.isSleep && (
+                  <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
+                    <button 
+                      onClick={() => {
+                        updateStats({ sleepDuration: (user?.sleepDuration || 0) + 30 });
+                        addHistory('Logged +30m sleep', 'Health');
+                      }}
+                      style={{ background: 'rgba(168, 85, 247, 0.1)', border: '1px solid rgba(168, 85, 247, 0.2)', color: '#a855f7', padding: '4px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px' }}
+                    >
+                      + 30m
+                    </button>
+                    <button 
+                      onClick={() => {
+                        updateStats({ sleepDuration: Math.max(0, (user?.sleepDuration || 0) - 30) });
+                        addHistory('Removed 30m sleep', 'Health');
+                      }}
+                      style={{ background: 'rgba(168, 85, 247, 0.1)', border: '1px solid rgba(168, 85, 247, 0.2)', color: '#a855f7', padding: '4px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px' }}
+                    >
+                      - 30m
+                    </button>
+                  </div>
+                )}
+                {!stat.isWater && !stat.isScreenTime && !stat.isSleep && (
                   <span className={`stat-change up`}>
                     {stat.change} vs avg
                   </span>
@@ -113,8 +165,8 @@ const PremiumDashboard = () => {
         ))}
       </div>
 
-      <div className="dashboard-main-grid">
-        <div className="main-grid-left">
+      <div className="dashboard-main-grid" style={{ gridTemplateColumns: '1fr' }}>
+        <div className="main-grid-left" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
           <GlassCard className="chart-card" title="Elite Usage Trends" subtitle="Optimized digital activity patterns">
             <div className="chart-container" style={{ height: 350 }}>
               <ResponsiveContainer width="100%" height="100%">
@@ -142,80 +194,65 @@ const PremiumDashboard = () => {
             </div>
           </GlassCard>
 
-          <div className="premium-features-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '24px', marginTop: '24px' }}>
-            <div className="glass-card premium-feature">
-              <Zap size={24} className="text-gradient" />
-              <h4>Priority Neural Processing</h4>
-              <p>Your AI requests are routed through high-frequency servers.</p>
+          <div className="premium-features-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '24px', marginTop: '0' }}>
+            <div className="glass-card premium-feature" style={{ padding: '24px', borderRadius: '20px' }}>
+              <Zap size={24} className="text-gradient" style={{ marginBottom: '12px' }} />
+              <h4 style={{ margin: '0 0 8px 0', fontSize: '16px', color: '#fff' }}>Priority Neural Processing</h4>
+              <p style={{ margin: 0, fontSize: '14px', color: 'var(--text-muted)', lineHeight: '1.5' }}>Your AI requests are routed through high-frequency servers for lightning-fast analysis.</p>
             </div>
-            <div className="glass-card premium-feature">
-              <Star size={24} className="text-gradient" />
-              <h4>Advanced Sleep Bio-hacks</h4>
-              <p>Customized light and sound therapy based on your circadian rhythm.</p>
+            <div className="glass-card premium-feature" style={{ padding: '24px', borderRadius: '20px' }}>
+              <Star size={24} className="text-gradient" style={{ marginBottom: '12px' }} />
+              <h4 style={{ margin: '0 0 8px 0', fontSize: '16px', color: '#fff' }}>Advanced Sleep Bio-hacks</h4>
+              <p style={{ margin: 0, fontSize: '14px', color: 'var(--text-muted)', lineHeight: '1.5' }}>Customized light and sound therapy based on your circadian rhythm to optimize recovery.</p>
             </div>
-          </div>
-        </div>
-
-        <div className="side-grid">
-          <motion.div 
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="glass-card exclusive-challenges"
-          >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <h3 style={{ color: 'var(--primary)', margin: 0 }}>Exclusive Challenges</h3>
-              <button 
-                onClick={() => setIsHistoryOpen(true)}
-                style={{ 
-                  background: 'none', 
-                  border: 'none', 
-                  color: 'var(--text-muted)', 
-                  cursor: 'pointer', 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  gap: '6px',
-                  fontSize: '13px'
-                }}
-              >
-                <History size={14} /> History
-              </button>
+            <div className="glass-card premium-feature" style={{ padding: '24px', borderRadius: '20px', border: '1px solid rgba(99, 102, 241, 0.15)', background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.05), rgba(255, 255, 255, 0.01))' }}>
+              <Award size={24} className="text-gradient" style={{ marginBottom: '12px' }} />
+              <h4 style={{ margin: '0 0 8px 0', fontSize: '16px', color: '#fff' }}>Excellence as a Habit</h4>
+              <p style={{ margin: 0, fontSize: '14px', color: 'var(--text-muted)', lineHeight: '1.5', fontStyle: 'italic' }}>
+                "We are what we repeatedly do. Excellence, then, is not an act, but a habit."
+              </p>
+              <p style={{ margin: '8px 0 0 0', fontSize: '12px', color: 'var(--primary)', fontWeight: 600, textAlign: 'right' }}>
+                — Aristotle
+              </p>
             </div>
-            <div className="challenge-list">
-              {[
-                { title: 'Neural Flow State', difficulty: 'Hard' },
-                { title: 'Zen Master Ritual', difficulty: 'Expert' },
-                { title: 'Bio-Sync Week', difficulty: 'Legendary' }
-              ].map((c, i) => (
-                <div key={i} className="challenge-item-premium">
-                  <div className="challenge-icon-gold">
-                    <Crown size={16} />
-                  </div>
-                  <div className="challenge-info">
-                    <p className="title">{c.title}</p>
-                    <p className="meta">{c.difficulty} Achievement</p>
-                  </div>
-                  <ChevronRight size={16} className="text-dim" />
-                </div>
-              ))}
+            <div className="glass-card premium-feature" style={{ padding: '24px', borderRadius: '20px', border: '1px solid rgba(168, 85, 247, 0.15)', background: 'linear-gradient(135deg, rgba(168, 85, 247, 0.05), rgba(255, 255, 255, 0.01))' }}>
+              <Brain size={24} className="text-gradient" style={{ marginBottom: '12px' }} />
+              <h4 style={{ margin: '0 0 8px 0', fontSize: '16px', color: '#fff' }}>Small Beginnings</h4>
+              <p style={{ margin: 0, fontSize: '14px', color: 'var(--text-muted)', lineHeight: '1.5', fontStyle: 'italic' }}>
+                "All big things come from small beginnings. The seed of every habit is a single, tiny decision."
+              </p>
+              <p style={{ margin: '8px 0 0 0', fontSize: '12px', color: '#a855f7', fontWeight: 600, textAlign: 'right' }}>
+                — James Clear
+              </p>
             </div>
-          </motion.div>
-
-          <div style={{ marginTop: '24px' }}>
-            <CommunityButtons />
-          </div>
-
-          <div className="glass-card coaching-log">
-            <div className="header-with-icon">
-              <BarChart3 size={18} className="text-gradient" />
-              <h4>Coaching Log</h4>
+            <div className="glass-card premium-feature" style={{ padding: '24px', borderRadius: '20px', border: '1px solid rgba(34, 211, 238, 0.15)', background: 'linear-gradient(135deg, rgba(34, 211, 238, 0.05), rgba(255, 255, 255, 0.01))' }}>
+              <Star size={24} className="text-gradient" style={{ marginBottom: '12px' }} />
+              <h4 style={{ margin: '0 0 8px 0', fontSize: '16px', color: '#fff' }}>Power of Consistency</h4>
+              <p style={{ margin: 0, fontSize: '14px', color: 'var(--text-muted)', lineHeight: '1.5', fontStyle: 'italic' }}>
+                "It is not what we do once in a while that shapes our lives. It's what we do consistently."
+              </p>
+              <p style={{ margin: '8px 0 0 0', fontSize: '12px', color: '#22d3ee', fontWeight: 600, textAlign: 'right' }}>
+                — Tony Robbins
+              </p>
             </div>
-            <div className="log-entries">
-              <p className="empty-log">AI is currently analyzing your last session...</p>
+            <div className="glass-card premium-feature" style={{ padding: '24px', borderRadius: '20px', border: '1px solid rgba(16, 185, 129, 0.15)', background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.05), rgba(255, 255, 255, 0.01))' }}>
+              <ShieldCheck size={24} className="text-gradient" style={{ marginBottom: '12px' }} />
+              <h4 style={{ margin: '0 0 8px 0', fontSize: '16px', color: '#fff' }}>Habit & Motivation</h4>
+              <p style={{ margin: 0, fontSize: '14px', color: 'var(--text-muted)', lineHeight: '1.5', fontStyle: 'italic' }}>
+                "Motivation is what gets you started. Habit is what keeps you going."
+              </p>
+              <p style={{ margin: '8px 0 0 0', fontSize: '12px', color: '#10b981', fontWeight: 600, textAlign: 'right' }}>
+                — Jim Ryun
+              </p>
             </div>
           </div>
         </div>
       </div>
       <HistoryModal isOpen={isHistoryOpen} onClose={() => setIsHistoryOpen(false)} />
+      <ManualScreenTimeModal
+        isOpen={isScreenTimeModalOpen}
+        onClose={() => setIsScreenTimeModalOpen(false)}
+      />
     </div>
   );
 };

@@ -6,8 +6,9 @@ import '../styles/Focus.css';
 
 const FocusMode = () => {
   const [timeLeft, setTimeLeft] = useState(25 * 60);
+  const [totalTime, setTotalTime] = useState(25 * 60);
   const [isActive, setIsActive] = useState(false);
-  const [mode, setMode] = useState('focus'); // focus, short-break, long-break
+  const [mode, setMode] = useState('focus'); // break, focus, short-break, long-break
 
   useEffect(() => {
     let interval = null;
@@ -26,13 +27,31 @@ const FocusMode = () => {
   
   const resetTimer = () => {
     setIsActive(false);
-    setTimeLeft(mode === 'focus' ? 25 * 60 : mode === 'short-break' ? 5 * 60 : 15 * 60);
+    if (mode === 'break') {
+      setTimeLeft(totalTime);
+    } else {
+      setTimeLeft(mode === 'focus' ? 25 * 60 : mode === 'short-break' ? 5 * 60 : 15 * 60);
+    }
   };
 
   const changeMode = (newMode) => {
     setMode(newMode);
     setIsActive(false);
-    setTimeLeft(newMode === 'focus' ? 25 * 60 : newMode === 'short-break' ? 5 * 60 : 15 * 60);
+    if (newMode === 'break') {
+      const minutes = prompt("Enter your custom break time (in minutes):", "15");
+      const minsParsed = parseInt(minutes, 10);
+      if (!isNaN(minsParsed) && minsParsed > 0) {
+        setTimeLeft(minsParsed * 60);
+        setTotalTime(minsParsed * 60);
+      } else {
+        setTimeLeft(15 * 60);
+        setTotalTime(15 * 60);
+      }
+    } else {
+      const mins = newMode === 'focus' ? 25 * 60 : newMode === 'short-break' ? 5 * 60 : 15 * 60;
+      setTimeLeft(mins);
+      setTotalTime(mins);
+    }
   };
 
   const formatTime = (seconds) => {
@@ -41,7 +60,7 @@ const FocusMode = () => {
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const progress = (timeLeft / (mode === 'focus' ? 25 * 60 : mode === 'short-break' ? 5 * 60 : 15 * 60)) * 100;
+  const progress = totalTime > 0 ? (timeLeft / totalTime) * 100 : 0;
 
   return (
     <div className="focus-page">
@@ -52,6 +71,7 @@ const FocusMode = () => {
           className="timer-display glass-card"
         >
           <div className="timer-modes">
+            <button className={mode === 'break' ? 'active' : ''} onClick={() => changeMode('break')}>Break</button>
             <button className={mode === 'focus' ? 'active' : ''} onClick={() => changeMode('focus')}>Focus</button>
             <button className={mode === 'short-break' ? 'active' : ''} onClick={() => changeMode('short-break')}>Short Break</button>
             <button className={mode === 'long-break' ? 'active' : ''} onClick={() => changeMode('long-break')}>Long Break</button>
@@ -72,7 +92,7 @@ const FocusMode = () => {
             </svg>
             <div className="timer-content">
               <h1>{formatTime(timeLeft)}</h1>
-              <p>{mode === 'focus' ? 'Stay Focused' : 'Take a Break'}</p>
+              <p>{mode === 'focus' ? 'Stay Focused' : mode === 'break' ? 'Custom Break' : 'Take a Break'}</p>
             </div>
           </div>
 

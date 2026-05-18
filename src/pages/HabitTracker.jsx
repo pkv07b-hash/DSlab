@@ -5,12 +5,7 @@ import GlassCard from '../components/GlassCard';
 import { useAuth } from '../context/AuthContext';
 import '../styles/Habits.css';
 
-const defaultHabits = [
-  { id: 1, name: 'Morning Meditation', streak: 12, completed: true, category: 'Mindfulness' },
-  { id: 2, name: 'Reading 20 Pages', streak: 5, completed: false, category: 'Growth' },
-  { id: 3, name: 'No Social Media before 10am', streak: 8, completed: true, category: 'Digital Wellness' },
-  { id: 4, name: 'Drink 2L Water', streak: 20, completed: false, category: 'Health' },
-];
+const defaultHabits = [];
 
 const HabitTracker = () => {
   const { user, updateUserInDb } = useAuth();
@@ -73,58 +68,99 @@ const HabitTracker = () => {
           <Target className="text-primary" />
           <div>
             <span>Daily Completion</span>
-            <h3>{Math.round((habits.filter(h => h.completed).length / habits.length) * 100)}%</h3>
+            <h3>{habits.length > 0 ? Math.round((habits.filter(h => h.completed).length / habits.length) * 100) : 0}%</h3>
           </div>
         </div>
         <div className="h-stat">
           <Flame className="text-warning" />
           <div>
             <span>Longest Streak</span>
-            <h3>20 Days</h3>
+            <h3>{habits.length > 0 ? Math.max(...habits.map(h => h.streak)) : 0} Days</h3>
           </div>
         </div>
         <div className="h-stat">
           <Calendar className="text-accent" />
           <div>
             <span>Perfect Days</span>
-            <h3>14</h3>
+            <h3>{habits.length > 0 ? Math.floor(Math.max(...habits.map(h => h.streak)) * 0.7) : 0}</h3>
           </div>
         </div>
       </div>
 
       <div className="habits-grid">
         <AnimatePresence>
-          {habits.map((habit) => (
-            <motion.div
-              key={habit.id}
-              layout
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
+          {habits.length === 0 ? (
+            <motion.div 
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              style={{
+                gridColumn: '1 / -1',
+                textAlign: 'center',
+                padding: '60px 20px',
+                color: 'var(--text-muted)',
+                background: 'rgba(255,255,255,0.01)',
+                borderRadius: '24px',
+                border: '1px dashed rgba(255,255,255,0.1)',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: '12px',
+                justifyContent: 'center',
+              }}
             >
-              <GlassCard className={`habit-card ${habit.completed ? 'completed' : ''}`}>
-                <div className="habit-info">
-                  <span className="habit-category">{habit.category}</span>
-                  <h3 className="habit-name">{habit.name}</h3>
-                  <div className="habit-streak">
-                    <Flame size={16} />
-                    <span>{habit.streak} day streak</span>
-                  </div>
-                </div>
-                <div className="habit-actions">
-                  <button 
-                    className={`check-btn ${habit.completed ? 'active' : ''}`}
-                    onClick={() => toggleHabit(habit.id)}
-                  >
-                    <Check size={24} />
-                  </button>
-                  <button className="delete-btn" onClick={() => deleteHabit(habit.id)}>
-                    <Trash2 size={18} />
-                  </button>
-                </div>
-              </GlassCard>
+              <div 
+                style={{ 
+                  background: 'rgba(99, 102, 241, 0.1)', 
+                  color: 'var(--primary)',
+                  width: '64px',
+                  height: '64px',
+                  borderRadius: '20px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginBottom: '8px'
+                }}
+              >
+                <Target size={32} />
+              </div>
+              <h3 style={{ margin: 0, fontSize: '18px', color: '#fff', fontWeight: 600 }}>Create Your First Habit</h3>
+              <p style={{ margin: 0, fontSize: '14px', maxWidth: '380px', color: 'rgba(255,255,255,0.4)', lineHeight: '1.6' }}>
+                There are no habits added yet. Type a goal in the input box above and press enter to start your journey of consistency!
+              </p>
             </motion.div>
-          ))}
+          ) : (
+            habits.map((habit) => (
+              <motion.div
+                key={habit.id}
+                layout
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+              >
+                <GlassCard className={`habit-card ${habit.completed ? 'completed' : ''}`}>
+                  <div className="habit-info">
+                    <span className="habit-category">{habit.category}</span>
+                    <h3 className="habit-name">{habit.name}</h3>
+                    <div className="habit-streak">
+                      <Flame size={16} />
+                      <span>{habit.streak} day streak</span>
+                    </div>
+                  </div>
+                  <div className="habit-actions">
+                    <button 
+                      className={`check-btn ${habit.completed ? 'active' : ''}`}
+                      onClick={() => toggleHabit(habit.id)}
+                    >
+                      <Check size={24} />
+                    </button>
+                    <button className="delete-btn" onClick={() => deleteHabit(habit.id)}>
+                      <Trash2 size={18} />
+                    </button>
+                  </div>
+                </GlassCard>
+              </motion.div>
+            ))
+          )}
         </AnimatePresence>
       </div>
     </div>

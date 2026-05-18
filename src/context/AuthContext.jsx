@@ -1,6 +1,9 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
-const AuthContext = createContext();
+if (!globalThis.__AuthContext) {
+  globalThis.__AuthContext = createContext();
+}
+const AuthContext = globalThis.__AuthContext;
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(() => {
@@ -35,9 +38,10 @@ export const AuthProvider = ({ children }) => {
       isPremium: false, 
       theme: 'dark',
       water: 0,
-      screenTime: '4h 12m',
-      sleepQuality: 82,
-      focusScore: 74
+      screenTime: { total: 0, categories: { entertainment: 0, news: 0, coding: 0, focus: 0, custom: {} } },
+      sleepDuration: 0,
+      focusScore: 0,
+      history: []
     };
     setDb(prev => ({ ...prev, [email]: newUser }));
     return { success: true };
@@ -49,9 +53,10 @@ export const AuthProvider = ({ children }) => {
       // Ensure all stats exist for older accounts
       const userWithStats = {
         water: 0,
-        screenTime: '4h 12m',
-        sleepQuality: 82,
+        screenTime: { total: 252, categories: { entertainment: 120, news: 60, coding: 72, focus: 0, custom: {} } },
+        sleepDuration: 0,
         focusScore: 74,
+        history: [],
         ...existingUser
       };
       setUser(userWithStats);
@@ -72,7 +77,18 @@ export const AuthProvider = ({ children }) => {
   const updateWater = (amount) => {
     if (!user) return;
     const newWater = Math.max(0, parseFloat((user.water || 0) + amount)).toFixed(1);
-    updateUserInDb({ ...user, water: parseFloat(newWater) });
+    
+    const action = amount > 0 ? `Logged +${amount}L water` : `Logged -${Math.abs(amount)}L water`;
+    const newEntry = {
+      id: Date.now(),
+      action,
+      date: new Date().toISOString().split('T')[0],
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      category: 'Habit'
+    };
+    const updatedHistory = [newEntry, ...(user.history || [])];
+
+    updateUserInDb({ ...user, water: parseFloat(newWater), history: updatedHistory });
   };
 
   const updateStats = (newStats) => {
@@ -80,8 +96,24 @@ export const AuthProvider = ({ children }) => {
     updateUserInDb({ ...user, ...newStats });
   };
 
+  const addHistory = (action, category) => {
+    if (!user) return;
+    if (user.history && user.history.length > 0 && user.history[0].action === action) {
+      return;
+    }
+    const newEntry = {
+      id: Date.now(),
+      action,
+      date: new Date().toISOString().split('T')[0],
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      category
+    };
+    const updatedHistory = [newEntry, ...(user.history || [])];
+    updateUserInDb({ ...user, history: updatedHistory });
+  };
+
   return (
-    <AuthContext.Provider value={{ user, login, signup, logout, updateUserInDb, updateWater, updateStats }}>
+    <AuthContext.Provider value={{ user, login, signup, logout, updateUserInDb, updateWater, updateStats, addHistory }}>
       {children}
     </AuthContext.Provider>
   );

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { NavLink } from 'react-router-dom';
 import { 
   LayoutDashboard, 
@@ -19,10 +19,11 @@ import {
 import { useTheme } from '../context/ThemeContext';
 import { useUser } from '../context/UserContext';
 import { useAuth } from '../context/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import ContactModal from './ContactModal';
 import ReviewModal from './ReviewModal';
 import HistoryModal from './HistoryModal';
+import SettingsModal from './SettingsModal';
 
 const Sidebar = () => {
   const { theme, toggleTheme } = useTheme();
@@ -33,6 +34,25 @@ const Sidebar = () => {
   const [isContactOpen, setIsContactOpen] = useState(false);
   const [isReviewOpen, setIsReviewOpen] = useState(false);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const location = useLocation();
+  const { addHistory } = useAuth();
+
+  useEffect(() => {
+    if (!addHistory) return;
+    const path = location.pathname;
+    let pageName = '';
+    if (path === '/') pageName = isPremium ? 'Elite Dashboard' : 'Dashboard';
+    else if (path === '/habits') pageName = 'Habits Tracker';
+    else if (path === '/analytics') pageName = 'Analytics';
+    else if (path === '/focus') pageName = 'Focus Mode';
+    else if (path === '/sleep') pageName = 'Sleep & Health';
+    else if (path === '/challenges') pageName = 'Challenges';
+
+    if (pageName) {
+      addHistory(`Visited ${pageName}`, 'Navigation');
+    }
+  }, [location.pathname, isPremium]);
 
   const handleLogout = () => {
     logout();
@@ -40,13 +60,12 @@ const Sidebar = () => {
   };
 
   const menuItems = [
-    { icon: LayoutDashboard, label: 'Dashboard', path: '/' },
-    ...(isPremium ? [{ icon: Crown, label: 'Premium Hub', path: '/premium' }] : []),
+    ...(isPremium ? [] : [{ icon: LayoutDashboard, label: 'Dashboard', path: '/' }]),
+    ...(isPremium ? [{ icon: Crown, label: 'Dashboard', path: '/' }] : []),
     { icon: CheckCircle2, label: 'Habits', path: '/habits' },
     { icon: BarChart3, label: 'Analytics', path: '/analytics' },
     { icon: Timer, label: 'Focus', path: '/focus' },
     { icon: Moon, label: 'Sleep & Health', path: '/sleep' },
-    { icon: Trophy, label: 'Challenges', path: '/challenges' },
   ];
 
   return (
@@ -77,17 +96,24 @@ const Sidebar = () => {
           <span>History</span>
         </button>
         
-        {/* New Community / Contact Buttons */}
-        <div style={{ marginTop: '20px', paddingTop: '20px', borderTop: '1px solid var(--glass-border)' }}>
-          <button className="nav-item" onClick={() => setIsContactOpen(true)} style={{ width: '100%', background: 'transparent', border: 'none', cursor: 'pointer', textAlign: 'left' }}>
-            <Phone size={20} />
-            <span>Connect Us</span>
-          </button>
-          <button className="nav-item" onClick={() => setIsReviewOpen(true)} style={{ width: '100%', background: 'transparent', border: 'none', cursor: 'pointer', textAlign: 'left' }}>
-            <Star size={20} />
-            <span>Reviews</span>
-          </button>
-        </div>
+        <NavLink 
+          to="/challenges"
+          className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
+        >
+          <Trophy size={20} />
+          <span>Challenges</span>
+        </NavLink>
+        
+        <button className="nav-item" onClick={() => setIsReviewOpen(true)} style={{ width: '100%', background: 'transparent', border: 'none', cursor: 'pointer', textAlign: 'left' }}>
+          <Star size={20} />
+          <span>Reviews</span>
+        </button>
+        
+        <button className="nav-item" onClick={() => setIsContactOpen(true)} style={{ width: '100%', background: 'transparent', border: 'none', cursor: 'pointer', textAlign: 'left' }}>
+          <MessageSquare size={20} />
+          <span>Connect Us</span>
+        </button>
+
       </nav>
 
       <div className="sidebar-footer">
@@ -95,7 +121,7 @@ const Sidebar = () => {
           {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
           <span>{theme === 'dark' ? 'Light Mode' : 'Dark Mode'}</span>
         </button>
-        <button className="nav-item" style={{ width: '100%', background: 'transparent', border: 'none', cursor: 'pointer', textAlign: 'left' }}>
+        <button className="nav-item" onClick={() => setIsSettingsOpen(true)} style={{ width: '100%', background: 'transparent', border: 'none', cursor: 'pointer', textAlign: 'left' }}>
           <Settings size={20} />
           <span>Settings</span>
         </button>
@@ -108,6 +134,7 @@ const Sidebar = () => {
       <ContactModal isOpen={isContactOpen} onClose={() => setIsContactOpen(false)} />
       <ReviewModal isOpen={isReviewOpen} onClose={() => setIsReviewOpen(false)} />
       <HistoryModal isOpen={isHistoryOpen} onClose={() => setIsHistoryOpen(false)} />
+      <SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
     </aside>
   );
 };

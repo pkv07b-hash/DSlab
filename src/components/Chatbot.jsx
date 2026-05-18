@@ -8,7 +8,7 @@ import '../styles/Chatbot.css';
 
 const Chatbot = () => {
   const { isPremium } = useUser();
-  const { user } = useAuth();
+  const { user, addHistory } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
@@ -40,6 +40,12 @@ const Chatbot = () => {
       };
     }
   }, []);
+
+  useEffect(() => {
+    if (isOpen && addHistory) {
+      addHistory('Visited HealHabit AI Coach', 'AI Coach');
+    }
+  }, [isOpen]);
 
   const toggleListening = () => {
     if (isListening) {
@@ -84,6 +90,9 @@ const Chatbot = () => {
 
     setMessages(prev => [...prev, userMsg]);
     const currentInput = input;
+    if (addHistory) {
+      addHistory(`Asked AI Coach: "${currentInput.length > 25 ? currentInput.slice(0, 25) + '...' : currentInput}"`, 'AI Coach');
+    }
     setInput('');
     setIsTyping(true);
 
