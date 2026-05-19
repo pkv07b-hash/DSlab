@@ -1,9 +1,10 @@
 import mongoose from 'mongoose';
 
-const MONGODB_URI = process.env.MONGODB_URI;
+// Use environment variable if available, otherwise fallback to the hardcoded URL to ensure Vercel always connects
+const MONGODB_URI = process.env.MONGODB_URI || "mongodb+srv://pkv07b_db_user:B9POq9UoH9dD6jjQ@pravin.ljvsevp.mongodb.net/healhabit?retryWrites=true&w=majority";
 
 if (!MONGODB_URI) {
-  console.warn('⚠️ No MONGODB_URI found in environment variables. Database connections will fail.');
+  console.warn('⚠️ No MONGODB_URI found. Database connections will fail.');
 }
 
 /**
