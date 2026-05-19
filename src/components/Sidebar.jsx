@@ -70,11 +70,12 @@ const Sidebar = ({ isOpen, onClose }) => {
   ];
 
   return (
-    <aside className={`sidebar ${isOpen ? 'mobile-open' : ''}`}>
+    <>
+      <aside className={`sidebar ${isOpen ? 'mobile-open' : ''}`}>
       <div className="sidebar-logo" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <div className={`logo-icon ${isPremium ? 'premium-logo' : ''}`}>
-            {isPremium ? <Crown size={24} /> : 'P'}
+          <div className={`logo-icon ${isPremium ? 'premium-logo' : ''}`} style={{ overflow: 'hidden' }}>
+            <img src="/logo.png" alt="HealHabit Logo" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
           </div>
           <span className={`logo-text ${isPremium ? 'text-premium' : 'text-gradient'}`}>
             {isPremium ? 'HealHabit Elite' : 'HealHabit'}
@@ -141,12 +142,13 @@ const Sidebar = ({ isOpen, onClose }) => {
           <span>Logout</span>
         </button>
       </div>
-
-      <ContactModal isOpen={isContactOpen} onClose={() => setIsContactOpen(false)} />
-      <ReviewModal isOpen={isReviewOpen} onClose={() => setIsReviewOpen(false)} />
-      <HistoryModal isOpen={isHistoryOpen} onClose={() => setIsHistoryOpen(false)} />
-      <SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
     </aside>
+
+    <ContactModal isOpen={isContactOpen} onClose={() => setIsContactOpen(false)} />
+    <ReviewModal isOpen={isReviewOpen} onClose={() => setIsReviewOpen(false)} />
+    <HistoryModal isOpen={isHistoryOpen} onClose={() => setIsHistoryOpen(false)} />
+    <SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
+  </>
   );
 };
 

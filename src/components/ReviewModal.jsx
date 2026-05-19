@@ -59,7 +59,7 @@ const ReviewModal = ({ isOpen, onClose }) => {
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.9 }}
           className="modal-content"
-          style={{ maxWidth: '1000px', minHeight: '85vh' }}
+          style={{ maxWidth: '1000px' }}
           onClick={e => e.stopPropagation()}
         >
           <button className="modal-close" onClick={onClose}>
@@ -71,7 +71,7 @@ const ReviewModal = ({ isOpen, onClose }) => {
             Website Experience & Reviews
           </h2>
 
-          <div className="rating-summary" style={{ display: 'flex', alignItems: 'center', gap: '16px', background: 'rgba(255,255,255,0.03)', padding: '20px 32px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)', marginBottom: '40px' }}>
+          <div className="rating-summary">
             <div style={{ fontSize: '48px', fontWeight: 'bold', color: '#fbbf24' }}>{averageRating}</div>
             <div style={{ display: 'flex', flexDirection: 'column' }}>
               <div style={{ display: 'flex', gap: '4px' }}>
@@ -92,10 +92,10 @@ const ReviewModal = ({ isOpen, onClose }) => {
             </div>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: '48px' }}>
+          <div className="reviews-grid">
             <div>
               <h3 style={{ marginBottom: '20px', color: 'var(--text-main)' }}>Share Your Feedback</h3>
-              <form onSubmit={handleSubmit} className="review-form" style={{ background: 'rgba(255,255,255,0.02)', padding: '32px', borderRadius: '24px', border: '1px solid rgba(255,255,255,0.05)' }}>
+              <form onSubmit={handleSubmit} className="review-form">
                 <div style={{ marginBottom: '24px' }}>
                   <label style={{ display: 'block', marginBottom: '12px', color: 'var(--text-muted)', fontSize: '16px' }}>Rate your experience (required)</label>
                   <div className="star-rating" style={{ gap: '12px' }}>

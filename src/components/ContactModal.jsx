@@ -25,8 +25,8 @@ const ContactModal = ({ isOpen, onClose }) => {
             Connect With the Developer
           </h2>
 
-          <div className="contact-list" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
-            <div className="contact-item" style={{ padding: '24px' }}>
+          <div className="contact-grid">
+            <div className="contact-item">
               <div className="contact-icon" style={{ width: '60px', height: '60px' }}>
                 <span style={{ fontSize: '32px', fontWeight: 'bold' }}>P</span>
               </div>
@@ -36,7 +36,7 @@ const ContactModal = ({ isOpen, onClose }) => {
               </div>
             </div>
 
-            <div className="contact-item" style={{ padding: '24px' }}>
+            <div className="contact-item">
               <div className="contact-icon" style={{ background: '#10b981', width: '60px', height: '60px' }}>
                 <Phone size={28} />
               </div>
@@ -46,7 +46,7 @@ const ContactModal = ({ isOpen, onClose }) => {
               </div>
             </div>
 
-            <div className="contact-item" style={{ padding: '24px' }}>
+            <div className="contact-item">
               <div className="contact-icon" style={{ background: '#f59e0b', width: '60px', height: '60px' }}>
                 <Mail size={28} />
               </div>
@@ -56,7 +56,7 @@ const ContactModal = ({ isOpen, onClose }) => {
               </div>
             </div>
 
-            <div className="contact-item" style={{ padding: '24px' }}>
+            <div className="contact-item">
               <div className="contact-icon" style={{ background: '#000000', width: '60px', height: '60px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <span style={{ fontSize: '32px', fontWeight: '900', color: 'white', fontFamily: 'system-ui' }}>X</span>
               </div>
@@ -66,13 +66,13 @@ const ContactModal = ({ isOpen, onClose }) => {
               </div>
             </div>
 
-            <div className="contact-item" style={{ padding: '24px' }}>
+            <div className="contact-item">
               <div className="contact-icon" style={{ background: 'linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%)', width: '60px', height: '60px' }}>
                 <Camera size={28} />
               </div>
               <div className="contact-info">
                 <h4 style={{ fontSize: '20px' }}>Instagram</h4>
-                <p><a href="https://instagram.com/pravin_kr89" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--text-dim)', textDecoration: 'none' }}>pravin_kr89</a></p>
+                <p><a href="https://www.instagram.com/heal_habit_/#" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--text-dim)', textDecoration: 'none' }}>heal_habit_</a></p>
               </div>
             </div>
           </div>

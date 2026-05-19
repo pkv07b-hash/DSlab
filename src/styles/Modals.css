@@ -11,6 +11,7 @@
   z-index: 3000;
   backdrop-filter: blur(12px);
   padding: 40px;
+  overscroll-behavior: contain;
 }
 
 .modal-content {
@@ -27,6 +28,7 @@
   overflow-y: auto;
   display: flex;
   flex-direction: column;
+  overscroll-behavior: contain;
 }
 
 .modal-close {
@@ -193,4 +195,118 @@
   color: var(--text-muted);
   font-size: 14px;
   line-height: 1.5;
+}
+
+/* --- Responsive Enhancements --- */
+.contact-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 24px;
+}
+
+.reviews-grid {
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr;
+  gap: 48px;
+}
+
+.rating-summary {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: rgba(255,255,255,0.03);
+  padding: 20px 32px;
+  border-radius: 16px;
+  border: 1px solid rgba(255,255,255,0.05);
+  margin-bottom: 40px;
+}
+
+.history-item {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 20px;
+  margin-bottom: 16px;
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.05);
+  border-radius: 16px;
+}
+
+.settings-modal-content {
+  max-width: 550px;
+  min-height: auto !important;
+  padding: 40px;
+}
+
+.history-icon-box {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: rgba(99, 102, 241, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary);
+  flex-shrink: 0;
+}
+
+.history-details {
+  flex: 1;
+  min-width: 0;
+}
+
+
+@media (max-width: 1024px) {
+  .reviews-grid {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+}
+
+@media (max-width: 768px) {
+  .modal-overlay {
+    padding: 16px;
+  }
+  
+  .modal-content {
+    padding: 24px 16px;
+    min-height: auto !important;
+    max-height: 95vh;
+    border-radius: 20px;
+  }
+  
+  .modal-title {
+    font-size: 20px !important;
+    margin-bottom: 16px !important;
+  }
+  
+  .contact-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  
+  .contact-item {
+    padding: 16px !important;
+  }
+  
+  .rating-summary {
+    padding: 16px 20px;
+    margin-bottom: 24px;
+    gap: 12px;
+  }
+  
+  .review-form {
+    padding: 20px !important;
+    border-radius: 16px !important;
+  }
+  
+  .history-item {
+    padding: 14px;
+    gap: 12px;
+    border-radius: 12px;
+  }
+  
+  .settings-modal-content {
+    padding: 24px 16px !important;
+  }
 }

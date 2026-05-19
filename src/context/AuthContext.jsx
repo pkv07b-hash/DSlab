@@ -62,7 +62,8 @@ export const AuthProvider = ({ children }) => {
       screenTime: { total: 0, categories: { entertainment: 0, news: 0, coding: 0, focus: 0, custom: {} } },
       sleepDuration: 0,
       focusScore: 0,
-      history: []
+      history: [],
+      lastActiveDate: new Date().toISOString().split('T')[0]
     };
 
     try {
@@ -103,6 +104,7 @@ export const AuthProvider = ({ children }) => {
           sleepDuration: 0,
           focusScore: 0,
           history: [],
+          lastActiveDate: new Date().toISOString().split('T')[0],
           ...data.user
         };
         setUser(loggedInUser);
@@ -120,6 +122,7 @@ export const AuthProvider = ({ children }) => {
           sleepDuration: 0,
           focusScore: 0,
           history: [],
+          lastActiveDate: new Date().toISOString().split('T')[0],
           ...existingUser
         };
         setUser(userWithStats);
@@ -147,6 +150,25 @@ export const AuthProvider = ({ children }) => {
       console.warn('Backend update failed, sync cached in localStorage');
     }
   };
+
+  useEffect(() => {
+    if (!user) return;
+    const todayStr = new Date().toISOString().split('T')[0];
+    if (user.lastActiveDate !== todayStr) {
+      if (!user.lastActiveDate) {
+        updateUserInDb({ ...user, lastActiveDate: todayStr });
+      } else {
+        const updatedUser = {
+          ...user,
+          water: 0,
+          sleepDuration: 0,
+          screenTime: { total: 0, categories: { entertainment: 0, news: 0, coding: 0, focus: 0, custom: {} } },
+          lastActiveDate: todayStr
+        };
+        updateUserInDb(updatedUser);
+      }
+    }
+  }, [user?.email, user?.lastActiveDate]);
 
   const updateWater = (amount) => {
     if (!user) return;

@@ -21,15 +21,40 @@ const SleepHealth = () => {
 
   // Dynamic Sleep chart data based on user's actual logged sleep (zero by default for new users)
   const sleepChartData = useMemo(() => {
-    return [
-      { day: 'Tue', hours: 0 },
-      { day: 'Wed', hours: 0 },
-      { day: 'Thu', hours: 0 },
-      { day: 'Fri', hours: 0 },
-      { day: 'Sat', hours: 0 },
-      { day: 'Sun', hours: parseFloat(sleepHours.toFixed(1)) }, // Current logged sleep duration
-    ];
-  }, [sleepHours]);
+    const days = [];
+    const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    
+    for (let i = 6; i >= 0; i--) {
+      // Calculate date i days ago in UTC
+      const d = new Date(Date.now() - i * 24 * 60 * 60 * 1000);
+      const dateStr = d.toISOString().split('T')[0];
+      const dayName = dayNames[d.getUTCDay()];
+      
+      let hours = 0;
+      if (i === 0) {
+        hours = parseFloat(sleepHours.toFixed(1));
+      } else {
+        let minutes = 0;
+        if (user?.history && Array.isArray(user.history)) {
+          const dateEntries = user.history.filter(
+            entry => entry.date === dateStr && entry.category === 'Health'
+          );
+          dateEntries.sort((a, b) => a.id - b.id);
+          dateEntries.forEach(entry => {
+            if (entry.action.includes('+30m sleep') || entry.action === 'Logged +30m sleep') {
+              minutes += 30;
+            } else if (entry.action.includes('Removed 30m sleep') || entry.action === 'Removed 30m sleep') {
+              minutes = Math.max(0, minutes - 30);
+            }
+          });
+        }
+        hours = parseFloat((minutes / 60).toFixed(1));
+      }
+      
+      days.push({ day: dayName, hours });
+    }
+    return days;
+  }, [user?.history, sleepHours]);
 
   // Dynamic stress level calculation based on screen time vs sleep duration
   const stressLevelPercent = useMemo(() => {
@@ -66,6 +91,13 @@ const SleepHealth = () => {
     return 'Your heart rate variability is stable and stress levels are optimal. Great job!';
   }, [stressLevelPercent]);
 
+  const averageSleepHours = useMemo(() => {
+    const nonZeroDays = sleepChartData.filter(d => d.hours > 0);
+    if (nonZeroDays.length === 0) return 0;
+    const sum = nonZeroDays.reduce((acc, curr) => acc + curr.hours, 0);
+    return sum / nonZeroDays.length;
+  }, [sleepChartData]);
+
   return (
     <div className="sleep-page" style={{ display: 'flex', flexDirection: 'column', gap: '32px', paddingTop: '80px' }}>
       <header>
@@ -77,7 +109,7 @@ const SleepHealth = () => {
       <div className="sleep-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '24px' }}>
         
         {/* Card 1: Sleep Duration Chart */}
-        <GlassCard title="Sleep Duration" subtitle={`Average: ${sleepHours.toFixed(1)} hours`}>
+        <GlassCard title="Sleep Duration" subtitle={`Average: ${averageSleepHours.toFixed(1)} hours`}>
           <div style={{ height: 220, marginTop: '16px' }}>
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={sleepChartData}>

@@ -54,8 +54,7 @@ const SettingsModal = ({ isOpen, onClose }) => {
           initial={{ opacity: 0, scale: 0.95, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
-          className="modal-content"
-          style={{ maxWidth: '550px', minHeight: 'auto', padding: '40px' }}
+          className="modal-content settings-modal-content"
           onClick={e => e.stopPropagation()}
         >
           <button className="modal-close" onClick={onClose}>

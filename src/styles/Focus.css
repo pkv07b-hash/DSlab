@@ -1,13 +1,14 @@
 .focus-page {
-  height: calc(100vh - 120px);
+  min-height: calc(100vh - 120px);
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 24px 0;
 }
 
 .focus-container {
   display: grid;
-  grid-template-columns: 500px 300px;
+  grid-template-columns: 1.6fr 1fr;
   gap: 40px;
   max-width: 900px;
   width: 100%;

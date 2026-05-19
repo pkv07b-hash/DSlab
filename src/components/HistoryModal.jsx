@@ -33,36 +33,14 @@ const HistoryModal = ({ isOpen, onClose }) => {
 
           <div className="history-list" style={{ marginTop: '30px' }}>
             {history.map((item) => (
-              <div 
-                key={item.id} 
-                className="history-item glass-card" 
-                style={{ 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  gap: '20px', 
-                  padding: '20px', 
-                  marginBottom: '16px',
-                  background: 'rgba(255,255,255,0.02)',
-                  border: '1px solid rgba(255,255,255,0.05)',
-                  borderRadius: '16px'
-                }}
-              >
-                <div className="history-icon-box" style={{ 
-                  width: '48px', 
-                  height: '48px', 
-                  borderRadius: '12px', 
-                  background: 'rgba(99, 102, 241, 0.1)', 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  justifyContent: 'center',
-                  color: 'var(--primary)'
-                }}>
+              <div key={item.id} className="history-item glass-card">
+                <div className="history-icon-box">
                   <CheckCircle2 size={24} />
                 </div>
                 
-                <div className="history-details" style={{ flex: 1 }}>
+                <div className="history-details">
                   <h4 style={{ margin: 0, fontSize: '16px', color: 'var(--text-main)' }}>{item.action}</h4>
-                  <div style={{ display: 'flex', gap: '16px', marginTop: '4px', fontSize: '13px', color: 'var(--text-muted)' }}>
+                  <div style={{ display: 'flex', gap: '16px', marginTop: '4px', fontSize: '13px', color: 'var(--text-muted)', flexWrap: 'wrap' }}>
                     <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                       <Calendar size={14} /> {item.date}
                     </span>

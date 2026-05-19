@@ -37,7 +37,8 @@ const UserSchema = new mongoose.Schema({
   },
   sleepDuration: { type: Number, default: 0 },
   focusScore: { type: Number, default: 0 },
-  history: { type: Array, default: [] }
+  history: { type: Array, default: [] },
+  lastActiveDate: { type: String, default: '' }
 });
 
 const User = mongoose.model('User', UserSchema);
