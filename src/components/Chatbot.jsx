@@ -186,10 +186,10 @@ const Chatbot = () => {
     
     User Question: ${query}`;
 
-    // 1. Try Gemini 1.5 Flash first (Optimized for ultra-low latency)
+    // 1. Try Gemini Flash Latest first (Optimized for ultra-low latency and future-proofed)
     try {
       const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GEMINI_API_KEY);
-      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+      const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
       
       const result = await model.generateContent(systemPrompt);
       const response = await result.response;
