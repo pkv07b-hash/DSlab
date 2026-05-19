@@ -125,7 +125,16 @@ const Chatbot = () => {
     setIsTyping(true);
 
     try {
-      const botResponse = await getAIResponse(currentInput, isPremium);
+      // Enforce a 15-second maximum wait time for the AI response
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error("The AI took too long to respond. Please try again.")), 15000)
+      );
+      
+      const botResponse = await Promise.race([
+        getAIResponse(currentInput, isPremium),
+        timeoutPromise
+      ]);
+
       const botMsg = {
         id: Date.now() + 1,
         text: botResponse,
@@ -177,70 +186,56 @@ const Chatbot = () => {
     
     User Question: ${query}`;
 
-    // 1. Try Gemini 2.0 Flash first
+    // 1. Try Gemini 1.5 Flash first (Optimized for ultra-low latency)
     try {
       const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GEMINI_API_KEY);
-      const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
       
       const result = await model.generateContent(systemPrompt);
       const response = await result.response;
       let text = response.text();
       text = text.replace(/```html/g, '').replace(/```/g, '').trim();
       return text;
-    } catch (gemini2Error) {
-      console.warn("Gemini 2.0 failed, trying Gemini 2.5...", gemini2Error);
+    } catch (geminiError) {
+      console.warn("Gemini API failed, trying Grok fallback...", geminiError);
       
-      // 2. Try Gemini 2.5 Flash
-      try {
-        const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GEMINI_API_KEY);
-        const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
-        
-        const result = await model.generateContent(systemPrompt);
-        const response = await result.response;
-        let text = response.text();
-        text = text.replace(/```html/g, '').replace(/```/g, '').trim();
-        return text;
-      } catch (gemini25Error) {
-        console.warn("Gemini 2.5 failed, trying Grok fallback...", gemini25Error);
-        
-        // 3. Try Grok (xAI) Fallback
-        if (
-          import.meta.env.VITE_GROK_API_KEY && 
-          import.meta.env.VITE_GROK_API_KEY !== 'YOUR_GROK_API_KEY' && 
-          import.meta.env.VITE_GROK_API_KEY !== 'YOUR_GROK_API_KEY_HERE'
-        ) {
-          try {
-            const grokResponse = await fetch("https://api.x.ai/v1/chat/completions", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${import.meta.env.VITE_GROK_API_KEY}`
-              },
-              body: JSON.stringify({
-                model: "grok-beta",
-                messages: [
-                  { role: "system", content: "You are HealHabit AI, a professional Wellness and Habit Coach. Answer in HTML format with point-wise lists. Use <b> tags to bold important points." },
-                  { role: "user", content: systemPrompt }
-                ],
-                temperature: 0.7
-              })
-            });
+      // 2. Try Grok (xAI) Fallback instantly without waiting for a second Gemini timeout
+      if (
+        import.meta.env.VITE_GROK_API_KEY && 
+        import.meta.env.VITE_GROK_API_KEY !== 'YOUR_GROK_API_KEY' && 
+        import.meta.env.VITE_GROK_API_KEY !== 'YOUR_GROK_API_KEY_HERE'
+      ) {
+        try {
+          const grokResponse = await fetch("https://api.x.ai/v1/chat/completions", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${import.meta.env.VITE_GROK_API_KEY}`
+            },
+            body: JSON.stringify({
+              model: "grok-beta",
+              messages: [
+                { role: "system", content: "You are HealHabit AI, a professional Wellness and Habit Coach. Answer in HTML format with point-wise lists. Use <b> tags to bold important points." },
+                { role: "user", content: systemPrompt }
+              ],
+              temperature: 0.7
+            })
+          });
 
-            const data = await grokResponse.json();
-            if (data.choices && data.choices[0]) {
-              let text = data.choices[0].message.content;
-              text = text.replace(/```html/g, '').replace(/```/g, '').trim();
-              return text;
-            } else if (data.error) {
-              console.error("Grok API Error:", data.error);
-              throw new Error(`Grok API Error: ${data.error.message || JSON.stringify(data.error)}`);
-            } else {
-              throw new Error("Grok API returned an unexpected response format.");
-            }
-          } catch (grokError) {
-            console.error("Grok Fallback also failed:", grokError);
-            throw grokError;
+          const data = await grokResponse.json();
+          if (data.choices && data.choices[0]) {
+            let text = data.choices[0].message.content;
+            text = text.replace(/```html/g, '').replace(/```/g, '').trim();
+            return text;
+          } else if (data.error) {
+            console.error("Grok API Error:", data.error);
+            throw new Error(`Grok API Error: ${data.error.message || JSON.stringify(data.error)}`);
+          } else {
+            throw new Error("Grok API returned an unexpected response format.");
           }
+        } catch (grokError) {
+          console.error("Grok Fallback also failed:", grokError);
+          throw grokError;
         }
       }
       
