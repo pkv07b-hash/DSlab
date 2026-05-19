@@ -6,27 +6,21 @@ if (!globalThis.__AuthContext) {
 const AuthContext = globalThis.__AuthContext;
 
 export const AuthProvider = ({ children }) => {
-  const [apiUrl, setApiUrl] = useState('http://localhost:5001'); // default to 5001
+  const [apiUrl, setApiUrl] = useState(''); // Default to relative path for Vercel Serverless
 
-  // Dynamically detect active backend port (either 5000 or 5001)
   useEffect(() => {
-    const detectBackend = async () => {
-      try {
-        const res = await fetch('http://localhost:5000/api/status');
-        if (res.ok) {
-          setApiUrl('http://localhost:5000');
-          return;
-        }
-      } catch (e) {}
-      try {
-        const res = await fetch('http://localhost:5001/api/status');
-        if (res.ok) {
-          setApiUrl('http://localhost:5001');
-          return;
-        }
-      } catch (e) {}
-    };
-    detectBackend();
+    // If running locally, check if the old Node.js backend is active
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+      const detectBackend = async () => {
+        try {
+          const res = await fetch('http://localhost:5000/api/status');
+          if (res.ok) {
+            setApiUrl('http://localhost:5000');
+          }
+        } catch (e) {}
+      };
+      detectBackend();
+    }
   }, []);
 
   const [user, setUser] = useState(() => {
