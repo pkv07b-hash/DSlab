@@ -14,6 +14,23 @@ const Chatbot = () => {
   const [isTyping, setIsTyping] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const recognitionRef = useRef(null);
+  const baseTextRef = useRef('');
+  const textareaRef = useRef(null);
+
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      const scrollHeight = textareaRef.current.scrollHeight;
+      textareaRef.current.style.height = `${Math.min(120, Math.max(42, scrollHeight))}px`;
+    }
+  }, [input]);
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
+    }
+  };
 
   useEffect(() => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -23,11 +40,12 @@ const Chatbot = () => {
       recognitionRef.current.interimResults = true;
 
       recognitionRef.current.onresult = (event) => {
-        const transcript = Array.from(event.results)
-          .map(result => result[0])
-          .map(result => result.transcript)
-          .join('');
-        setInput(transcript);
+        let speechText = '';
+        for (let i = 0; i < event.results.length; ++i) {
+          speechText += event.results[i][0].transcript;
+        }
+        const base = baseTextRef.current || '';
+        setInput(base ? `${base} ${speechText.trim()}` : speechText.trim());
       };
 
       recognitionRef.current.onend = () => {
@@ -48,11 +66,17 @@ const Chatbot = () => {
   }, [isOpen]);
 
   const toggleListening = () => {
+    if (!recognitionRef.current) {
+      alert("Speech recognition is not supported in this browser. Please try Chrome or Safari.");
+      return;
+    }
+
     if (isListening) {
-      recognitionRef.current?.stop();
+      recognitionRef.current.stop();
     } else {
+      baseTextRef.current = input;
       try {
-        recognitionRef.current?.start();
+        recognitionRef.current.start();
         setIsListening(true);
       } catch (err) {
         console.error("Failed to start speech recognition:", err);
@@ -80,6 +104,10 @@ const Chatbot = () => {
 
   const handleSend = async () => {
     if (!input.trim() || isTyping) return;
+
+    if (isListening && recognitionRef.current) {
+      recognitionRef.current.stop();
+    }
 
     const userMsg = {
       id: Date.now(),
@@ -176,7 +204,11 @@ const Chatbot = () => {
         console.warn("Gemini 2.5 failed, trying Grok fallback...", gemini25Error);
         
         // 3. Try Grok (xAI) Fallback
-        if (import.meta.env.VITE_GROK_API_KEY && import.meta.env.VITE_GROK_API_KEY !== 'YOUR_GROK_API_KEY_HERE') {
+        if (
+          import.meta.env.VITE_GROK_API_KEY && 
+          import.meta.env.VITE_GROK_API_KEY !== 'YOUR_GROK_API_KEY' && 
+          import.meta.env.VITE_GROK_API_KEY !== 'YOUR_GROK_API_KEY_HERE'
+        ) {
           try {
             const grokResponse = await fetch("https://api.x.ai/v1/chat/completions", {
               method: "POST",
@@ -201,9 +233,13 @@ const Chatbot = () => {
               return text;
             } else if (data.error) {
               console.error("Grok API Error:", data.error);
+              throw new Error(`Grok API Error: ${data.error.message || JSON.stringify(data.error)}`);
+            } else {
+              throw new Error("Grok API returned an unexpected response format.");
             }
           } catch (grokError) {
             console.error("Grok Fallback also failed:", grokError);
+            throw grokError;
           }
         }
       }
@@ -274,12 +310,13 @@ const Chatbot = () => {
             </div>
 
             <div className="chat-input-area">
-              <input 
-                type="text" 
+              <textarea 
+                ref={textareaRef}
                 placeholder={isListening ? "Listening..." : "Ask your coach anything..."}
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleSend()}
+                onKeyDown={handleKeyDown}
+                rows={1}
               />
               <button 
                 className={`mic-btn ${isListening ? 'listening' : ''}`}

@@ -143,9 +143,10 @@
   border-top: 1px solid var(--glass-border);
   display: flex;
   gap: 12px;
+  align-items: flex-end;
 }
 
-.chat-input-area input {
+.chat-input-area textarea {
   flex: 1;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid var(--glass-border);
@@ -153,9 +154,16 @@
   padding: 10px 16px;
   color: white;
   outline: none;
+  resize: none;
+  font-family: inherit;
+  font-size: 15px;
+  line-height: 1.4;
+  height: 42px;
+  max-height: 120px;
+  overflow-y: auto;
 }
 
-.chat-input-area input:focus {
+.chat-input-area textarea:focus {
   border-color: var(--primary);
 }
 
