@@ -197,49 +197,8 @@ const Chatbot = () => {
       text = text.replace(/```html/g, '').replace(/```/g, '').trim();
       return text;
     } catch (geminiError) {
-      console.warn("Gemini API failed, trying Grok fallback...", geminiError);
-      
-      // 2. Try Grok (xAI) Fallback instantly without waiting for a second Gemini timeout
-      if (
-        import.meta.env.VITE_GROK_API_KEY && 
-        import.meta.env.VITE_GROK_API_KEY !== 'YOUR_GROK_API_KEY' && 
-        import.meta.env.VITE_GROK_API_KEY !== 'YOUR_GROK_API_KEY_HERE'
-      ) {
-        try {
-          const grokResponse = await fetch("https://api.x.ai/v1/chat/completions", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "Authorization": `Bearer ${import.meta.env.VITE_GROK_API_KEY}`
-            },
-            body: JSON.stringify({
-              model: "grok-4.3",
-              messages: [
-                { role: "system", content: "You are HealHabit AI, a professional Wellness and Habit Coach. Answer in HTML format with point-wise lists. Use <b> tags to bold important points." },
-                { role: "user", content: systemPrompt }
-              ],
-              temperature: 0.7
-            })
-          });
-
-          const data = await grokResponse.json();
-          if (data.choices && data.choices[0]) {
-            let text = data.choices[0].message.content;
-            text = text.replace(/```html/g, '').replace(/```/g, '').trim();
-            return text;
-          } else if (data.error) {
-            console.error("Grok API Error:", data.error);
-            throw new Error(`Grok API Error: ${data.error.message || JSON.stringify(data.error)}`);
-          } else {
-            throw new Error("Grok API returned an unexpected response format.");
-          }
-        } catch (grokError) {
-          console.error("Grok Fallback also failed:", grokError);
-          throw grokError;
-        }
-      }
-      
-      throw new Error("Neural networks are unavailable. Please ensure your Gemini key is valid and your Grok account has credits.");
+      console.error("Gemini API failed:", geminiError);
+      throw new Error(`Gemini Error: ${geminiError.message || "Failed to connect to Google Gemini. Please check your API key."}`);
     }
   };
 
