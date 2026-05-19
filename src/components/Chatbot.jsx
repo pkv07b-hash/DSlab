@@ -213,7 +213,7 @@ const Chatbot = () => {
               "Authorization": `Bearer ${import.meta.env.VITE_GROK_API_KEY}`
             },
             body: JSON.stringify({
-              model: "grok-2-latest",
+              model: "grok-2",
               messages: [
                 { role: "system", content: "You are HealHabit AI, a professional Wellness and Habit Coach. Answer in HTML format with point-wise lists. Use <b> tags to bold important points." },
                 { role: "user", content: systemPrompt }
